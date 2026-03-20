@@ -8,6 +8,7 @@ import io
 import pandas as pd
 import yaml
 import requests
+from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
 
 
 def _project_root() -> str:
@@ -38,27 +39,49 @@ def _read_grid_source(path_or_url: str, source_format: str = None) -> pd.DataFra
     is_url = _is_url(path_or_url)
 
     if is_url:
-        # Optional basic auth for protected links.
-        username = os.getenv("GRID_DATA_BASIC_USERNAME", "")
-        password = os.getenv("GRID_DATA_BASIC_PASSWORD", "")
-        auth = (username, password) if username and password else None
+        candidate_urls = [path_or_url]
 
-        response = requests.get(path_or_url, auth=auth, timeout=60)
-        response.raise_for_status()
-        content = response.content
+        # For SharePoint links, try anonymous-friendly download URL variations.
+        if "sharepoint.com" in path_or_url.lower():
+            parsed = urlparse(path_or_url)
+            query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+            if query.get("download") != "1":
+                q = dict(query)
+                q["download"] = "1"
+                candidate_urls.append(urlunparse(parsed._replace(query=urlencode(q))))
 
-        if fmt == "excel" or fmt == "xlsx":
-            return pd.read_excel(io.BytesIO(content))
-        if fmt == "csv":
-            return pd.read_csv(io.BytesIO(content))
+            # Some links work better with web=1 removed and download=1 set.
+            if "web" in query:
+                q = dict(query)
+                q.pop("web", None)
+                q["download"] = "1"
+                candidate_urls.append(urlunparse(parsed._replace(query=urlencode(q))))
 
-        # Auto-detect by URL token or fallback to Excel first (SharePoint links are common).
-        if "xlsx" in path_or_url.lower() or "isspofile=1" in path_or_url.lower() or ":x:" in path_or_url.lower():
-            return pd.read_excel(io.BytesIO(content))
-        try:
-            return pd.read_excel(io.BytesIO(content))
-        except Exception:
-            return pd.read_csv(io.BytesIO(content))
+        last_error = None
+        for candidate in dict.fromkeys(candidate_urls):
+            try:
+                response = requests.get(candidate, timeout=60)
+                response.raise_for_status()
+                content = response.content
+
+                if fmt == "excel" or fmt == "xlsx":
+                    return pd.read_excel(io.BytesIO(content))
+                if fmt == "csv":
+                    return pd.read_csv(io.BytesIO(content))
+
+                # Auto-detect by URL token or fallback to Excel first.
+                lower_url = candidate.lower()
+                if "xlsx" in lower_url or "isspofile=1" in lower_url or ":x:" in lower_url:
+                    return pd.read_excel(io.BytesIO(content))
+                try:
+                    return pd.read_excel(io.BytesIO(content))
+                except Exception:
+                    return pd.read_csv(io.BytesIO(content))
+            except Exception as err:
+                last_error = err
+                continue
+
+        raise RuntimeError(f"Unable to fetch grid source URL without credentials: {last_error}")
 
     # Local file path
     resolved = _resolve_path(path_or_url)
@@ -76,7 +99,12 @@ def load_grid_data(config: dict) -> pd.DataFrame:
     data_cfg = config.get("data", {})
     source = data_cfg.get("grid_file")
     source_format = data_cfg.get("grid_file_format")
-    df = _read_grid_source(source, source_format)
+    try:
+        df = _read_grid_source(source, source_format)
+    except Exception as err:
+        fallback = data_cfg.get("grid_file_fallback", "./data/grid_data.csv")
+        print(f"[WARN] Remote grid source failed ({err}). Falling back to {fallback}")
+        df = _read_grid_source(fallback, "csv")
     df["Date"] = pd.to_datetime(df["Date"]).dt.date
     numeric_cols = [
         "Grid Units Consumed (KWh)",

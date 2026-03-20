@@ -70,8 +70,10 @@ streamlit run app.py
 
 ## Data Sources
 
-Grid data is fetched from the configured remote Excel URL in `config.yaml` (`data.grid_file`) and modelled after the ECS sheet with columns:
+Grid data is fetched from the configured remote Excel URL in `config.yaml` (`data.grid_file`) without credentials and modelled after the ECS sheet with columns:
 `Date | Day | Time | Ambient Temperature °C | Grid Units Consumed (KWh) | Total Units Consumed (KWh) | Total Units Consumed in INR | Energy Saving in INR`
+
+If the remote URL is unavailable/unauthorized, loader automatically falls back to `data.grid_file_fallback` (default: `./data/grid_data.csv`).
 
 Solar column is **omitted** from the grid data per design.
 
