@@ -70,7 +70,7 @@ streamlit run app.py
 
 ## Data Sources
 
-Grid data is modelled after the ECS sheet from **Electrical Optimization (1).xlsx** with columns:
+Grid data is fetched from the configured remote Excel URL in `config.yaml` (`data.grid_file`) and modelled after the ECS sheet with columns:
 `Date | Day | Time | Ambient Temperature °C | Grid Units Consumed (KWh) | Total Units Consumed (KWh) | Total Units Consumed in INR | Energy Saving in INR`
 
 Solar column is **omitted** from the grid data per design.
@@ -110,8 +110,7 @@ energy-dashboard/
 │   └── templates/
 │       └── email_body.html                 # Jinja2 email template (ECS format)
 │
-├── data/                                   # Auto-seeded on first run
-│   ├── grid_data.csv
+├── data/                                   # Local data files (solar/diesel); grid can be remote URL
 │   ├── solar_data.csv
 │   └── diesel_data.csv
 │
