@@ -8,7 +8,10 @@ import io
 import pandas as pd
 import yaml
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
+from dotenv import load_dotenv
+
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
 
 
 def _project_root() -> str:
@@ -54,8 +57,38 @@ def _sharepoint_candidate_urls(url: str) -> list[str]:
     return list(dict.fromkeys(candidates))
 
 
-def _read_csv_from_url(url: str) -> pd.DataFrame:
-    with urlopen(url, timeout=60) as response:
+def _auth_header_candidates() -> list[dict]:
+    """Build request header candidates for public, bearer-token and cookie flows."""
+    mode = os.getenv("GRID_DATA_AUTH_MODE", "auto").strip().lower()
+    bearer_token = os.getenv("GRID_DATA_BEARER_TOKEN", "").strip()
+    cookie = os.getenv("GRID_DATA_COOKIE", "").strip()
+    user_agent = os.getenv("GRID_DATA_USER_AGENT", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)").strip()
+
+    public_headers = {"User-Agent": user_agent}
+    bearer_headers = {"User-Agent": user_agent, "Authorization": f"Bearer {bearer_token}"} if bearer_token else None
+    cookie_headers = {"User-Agent": user_agent, "Cookie": cookie} if cookie else None
+
+    if mode == "none":
+        return [public_headers]
+    if mode == "bearer":
+        return [h for h in [bearer_headers, public_headers] if h]
+    if mode == "cookie":
+        return [h for h in [cookie_headers, public_headers] if h]
+    if mode == "both":
+        combo = {
+            "User-Agent": user_agent,
+            "Authorization": f"Bearer {bearer_token}",
+            "Cookie": cookie,
+        } if bearer_token and cookie else None
+        return [h for h in [combo, bearer_headers, cookie_headers, public_headers] if h]
+
+    # auto mode
+    return [h for h in [public_headers, bearer_headers, cookie_headers] if h]
+
+
+def _read_csv_from_url(url: str, headers: dict | None = None) -> pd.DataFrame:
+    req = Request(url, headers=headers or {})
+    with urlopen(req, timeout=60) as response:
         content = response.read()
     return pd.read_csv(io.BytesIO(content))
 
@@ -68,10 +101,11 @@ def _read_local_grid_csv(path: str) -> pd.DataFrame:
     if _is_url(first_line):
         last_err = None
         for candidate in _sharepoint_candidate_urls(first_line):
-            try:
-                return _read_csv_from_url(candidate)
-            except Exception as err:
-                last_err = err
+            for headers in _auth_header_candidates():
+                try:
+                    return _read_csv_from_url(candidate, headers=headers)
+                except Exception as err:
+                    last_err = err
         raise RuntimeError(f"Pointer URL in {os.path.basename(path)} failed: {last_err}")
 
     return pd.read_csv(path)
@@ -88,11 +122,14 @@ def load_grid_data(config: dict) -> pd.DataFrame:
             df = None
             last_err = None
             for candidate in _sharepoint_candidate_urls(source):
-                try:
-                    df = _read_csv_from_url(candidate)
+                for headers in _auth_header_candidates():
+                    try:
+                        df = _read_csv_from_url(candidate, headers=headers)
+                        break
+                    except Exception as err:
+                        last_err = err
+                if df is not None:
                     break
-                except Exception as err:
-                    last_err = err
             if df is None:
                 raise RuntimeError(f"Remote grid URL failed: {last_err}")
         else:
