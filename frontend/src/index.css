@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+:root[data-theme="light"] {
+  --bg-main: #ffffff;
+  --bg-accent: #ecfdf5;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-soft: rgba(255, 255, 255, 0.6);
+  --surface-border: rgba(16, 185, 129, 0.22);
+  --text-primary: #111827;
+  --text-muted: #6b7280;
+  --accent-500: #10b981;
+  --accent-600: #059669;
+  --accent-100: #d1fae5;
+  --success-600: #10b981;
+  --danger-600: #ef4444;
+  --shadow: 0 14px 30px rgba(16, 24, 40, 0.08);
+  --header-start: #ffffff;
+  --header-end: #f0fdf4;
+  --title-color: #0f172a;
+  --subtitle-color: #4b5563;
+  --toggle-bg: #1f2937;
+  --toggle-text: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #cde9da;
+  --input-text: #111827;
+  --input-placeholder: #6b7280;
+}
+
+:root[data-theme="dark"] {
+  --bg-main: #0b1411;
+  --bg-accent: #0f2a22;
+  --surface: rgba(17, 24, 39, 0.88);
+  --surface-soft: rgba(31, 41, 55, 0.68);
+  --surface-border: rgba(16, 185, 129, 0.25);
+  --text-primary: #e5e7eb;
+  --text-muted: #9ca3af;
+  --accent-500: #34d399;
+  --accent-600: #10b981;
+  --accent-100: #123226;
+  --success-600: #34d399;
+  --danger-600: #f87171;
+  --shadow: 0 20px 45px rgba(0, 8, 18, 0.45);
+  --header-start: #0b1411;
+  --header-end: #102219;
+  --title-color: #e5e7eb;
+  --subtitle-color: #9ca3af;
+  --toggle-bg: #1f2937;
+  --toggle-text: #e5e7eb;
+  --input-bg: #111827;
+  --input-border: #1f6d55;
+  --input-text: #f3f4f6;
+  --input-placeholder: #9ca3af;
+}
+
+:root {
+  color: var(--text-primary);
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% -10%, var(--bg-accent), transparent 35%),
+    radial-gradient(circle at 90% 0%, var(--accent-100), transparent 30%),
+    var(--bg-main);
+  color: var(--text-primary);
+  transition:
+    background 240ms ease,
+    color 240ms ease;
+}
+
+.app-shell {
+  color: var(--text-primary);
+}
+
+.app-header {
+  border-bottom: 1px solid var(--surface-border);
+  background: linear-gradient(110deg, var(--header-start), var(--header-end));
+  box-shadow: var(--shadow);
+}
+
+.brand-chip {
+  background: linear-gradient(140deg, var(--accent-600), var(--accent-500));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.app-title {
+  color: var(--title-color);
+}
+
+.app-subtitle {
+  color: var(--subtitle-color);
+}
+
+.header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-600);
+  background: var(--accent-100);
+  border: 1px solid var(--surface-border);
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--surface-border);
+  background: var(--toggle-bg);
+  color: var(--toggle-text);
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background 200ms ease,
+    transform 200ms ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--accent-600);
+  transform: translateY(-1px);
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(7px);
+}
+
+.nav-shell {
+  background: var(--surface-soft);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow);
+}
+
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: all 180ms ease;
+}
+
+.nav-btn:hover {
+  color: var(--text-primary);
+  background: var(--accent-100);
+}
+
+.nav-btn-active {
+  color: #ffffff;
+  background: linear-gradient(120deg, var(--accent-600), var(--accent-500));
+  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.28);
+}
+
+.section-title {
+  color: var(--text-primary);
+}
+
+.footer-shell {
+  border-top: 1px solid var(--surface-border);
+  background: var(--surface-soft);
+}
+
+.fade-in-up {
+  animation: fadeInUp 380ms ease both;
+}
+
+.field-label {
+  color: var(--text-muted);
+}
+
+.field-input {
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  color: var(--input-text);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.field-input::placeholder {
+  color: var(--input-placeholder);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent-500);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-500) 35%, transparent);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

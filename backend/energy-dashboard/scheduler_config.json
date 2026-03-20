@@ -1,0 +1,18 @@
+{
+  "to": "ishitas@maqsoftware.com",
+  "cc": "ishitas@maqsoftware.com",
+  "send_time": "10:00",
+  "subject": "[Updated Layout] Daily Energy Report - Noida Campus - {date}",
+  "custom_message": "abc",
+  "auto_start": false,
+  "include_sections": {
+    "summary_kpis": true,
+    "unified_table": true,
+    "grid_summary": true,
+    "solar_summary": true,
+    "diesel_summary": true,
+    "inverter_status": true,
+    "raw_data": false
+  },
+  "uploaded_template_path": null
+}

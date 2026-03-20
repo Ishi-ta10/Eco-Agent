@@ -1,0 +1,79 @@
+[
+  {
+    "timestamp": "2026-03-20T15:13:07.960700",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report_2026-03-20.csv",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com with HTML report and CSV attachment"
+  },
+  {
+    "timestamp": "2026-03-20T15:12:22.129660",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report_2026-03-20.csv",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com with HTML report and CSV attachment"
+  },
+  {
+    "timestamp": "2026-03-20T14:59:28.645303",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report.html",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com"
+  },
+  {
+    "timestamp": "2026-03-20T14:49:34.251727",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report.html",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com"
+  },
+  {
+    "timestamp": "2026-03-20T14:41:01.568053",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report.html",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com"
+  },
+  {
+    "timestamp": "2026-03-20T14:39:08.236794",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report.html",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com"
+  },
+  {
+    "timestamp": "2026-03-20T14:38:23.563234",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report.html",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com"
+  },
+  {
+    "timestamp": "2026-03-20T14:35:40.252323",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report.html",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com"
+  },
+  {
+    "timestamp": "2026-03-20T14:34:36.944969",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report_2026-03-20.csv",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com with HTML report and CSV attachment"
+  },
+  {
+    "timestamp": "2026-03-20T14:33:57.880868",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report.html",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com"
+  },
+  {
+    "timestamp": "2026-03-20T14:32:49.072268",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report.html",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com"
+  }
+]
