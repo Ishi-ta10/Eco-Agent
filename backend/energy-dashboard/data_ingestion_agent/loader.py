@@ -7,8 +7,8 @@ import os
 import io
 import pandas as pd
 import yaml
-import requests
 from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+from urllib.request import urlopen
 
 
 def _project_root() -> str:
@@ -33,78 +33,56 @@ def _is_url(path_or_url: str) -> bool:
     return isinstance(path_or_url, str) and path_or_url.startswith(("http://", "https://"))
 
 
-def _read_grid_source(path_or_url: str, source_format: str = None) -> pd.DataFrame:
-    """Read grid source from local path or remote URL supporting CSV/Excel."""
-    fmt = (source_format or "").strip().lower()
-    is_url = _is_url(path_or_url)
+def _sharepoint_candidate_urls(url: str) -> list[str]:
+    """Build candidate URLs for anonymous SharePoint CSV download."""
+    candidates = [url]
+    if "sharepoint.com" not in url.lower():
+        return candidates
 
-    if is_url:
-        candidate_urls = [path_or_url]
+    parsed = urlparse(url)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
 
-        # For SharePoint links, try anonymous-friendly download URL variations.
-        if "sharepoint.com" in path_or_url.lower():
-            parsed = urlparse(path_or_url)
-            query = dict(parse_qsl(parsed.query, keep_blank_values=True))
-            if query.get("download") != "1":
-                q = dict(query)
-                q["download"] = "1"
-                candidate_urls.append(urlunparse(parsed._replace(query=urlencode(q))))
+    q1 = dict(query)
+    q1["download"] = "1"
+    candidates.append(urlunparse(parsed._replace(query=urlencode(q1))))
 
-            # Some links work better with web=1 removed and download=1 set.
-            if "web" in query:
-                q = dict(query)
-                q.pop("web", None)
-                q["download"] = "1"
-                candidate_urls.append(urlunparse(parsed._replace(query=urlencode(q))))
+    q2 = dict(q1)
+    q2.pop("web", None)
+    candidates.append(urlunparse(parsed._replace(query=urlencode(q2))))
 
-        last_error = None
-        for candidate in dict.fromkeys(candidate_urls):
-            try:
-                response = requests.get(candidate, timeout=60)
-                response.raise_for_status()
-                content = response.content
+    # Preserve order and remove duplicates.
+    return list(dict.fromkeys(candidates))
 
-                if fmt == "excel" or fmt == "xlsx":
-                    return pd.read_excel(io.BytesIO(content))
-                if fmt == "csv":
-                    return pd.read_csv(io.BytesIO(content))
 
-                # Auto-detect by URL token or fallback to Excel first.
-                lower_url = candidate.lower()
-                if "xlsx" in lower_url or "isspofile=1" in lower_url or ":x:" in lower_url:
-                    return pd.read_excel(io.BytesIO(content))
-                try:
-                    return pd.read_excel(io.BytesIO(content))
-                except Exception:
-                    return pd.read_csv(io.BytesIO(content))
-            except Exception as err:
-                last_error = err
-                continue
-
-        raise RuntimeError(f"Unable to fetch grid source URL without credentials: {last_error}")
-
-    # Local file path
-    resolved = _resolve_path(path_or_url)
-    if fmt == "excel" or fmt == "xlsx":
-        return pd.read_excel(resolved)
-    if fmt == "csv":
-        return pd.read_csv(resolved)
-    if resolved.lower().endswith((".xlsx", ".xls")):
-        return pd.read_excel(resolved)
-    return pd.read_csv(resolved)
+def _read_csv_from_url(url: str) -> pd.DataFrame:
+    with urlopen(url, timeout=60) as response:
+        content = response.read()
+    return pd.read_csv(io.BytesIO(content))
 
 
 def load_grid_data(config: dict) -> pd.DataFrame:
     """Load and validate Grid data CSV (no solar column)."""
     data_cfg = config.get("data", {})
-    source = data_cfg.get("grid_file")
-    source_format = data_cfg.get("grid_file_format")
-    try:
-        df = _read_grid_source(source, source_format)
-    except Exception as err:
-        fallback = data_cfg.get("grid_file_fallback", "./data/grid_data.csv")
-        print(f"[WARN] Remote grid source failed ({err}). Falling back to {fallback}")
-        df = _read_grid_source(fallback, "csv")
+    source = data_cfg.get("grid_file", "./data/grid_data.csv")
+
+    if _is_url(source):
+        df = None
+        last_err = None
+        for candidate in _sharepoint_candidate_urls(source):
+            try:
+                df = _read_csv_from_url(candidate)
+                break
+            except Exception as err:
+                last_err = err
+
+        if df is None:
+            fallback = data_cfg.get("grid_file_fallback", "./data/grid_data.csv")
+            print(f"[WARN] Remote grid URL failed ({last_err}). Falling back to {fallback}")
+            df = pd.read_csv(_resolve_path(fallback))
+    else:
+        path = _resolve_path(source)
+        df = pd.read_csv(path)
+
     df["Date"] = pd.to_datetime(df["Date"]).dt.date
     numeric_cols = [
         "Grid Units Consumed (KWh)",
