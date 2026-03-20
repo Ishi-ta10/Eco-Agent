@@ -1,6 +1,6 @@
 data:
-  grid_file: "https://testmaq-my.sharepoint.com/:x:/r/personal/prajwal_khadse_maqsoftware_com/Documents/grid_data.csv?d=w23ec2bb3f1d64ac48960045acd0e81be&csf=1&web=1&e=kaLZbu"
-  grid_file_fallback: ./data/grid_data.csv
+  grid_file: ./data/grid_data.csv
+  grid_file_fallback: ./data/grid_data_fallback.csv
   solar_file: ./data/solar_data.csv
   diesel_file: ./data/diesel_data.csv
 

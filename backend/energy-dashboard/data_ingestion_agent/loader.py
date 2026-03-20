@@ -60,28 +60,46 @@ def _read_csv_from_url(url: str) -> pd.DataFrame:
     return pd.read_csv(io.BytesIO(content))
 
 
+def _read_local_grid_csv(path: str) -> pd.DataFrame:
+    """Read local grid source; supports pointer files containing a URL on line 1."""
+    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        first_line = f.readline().strip()
+
+    if _is_url(first_line):
+        last_err = None
+        for candidate in _sharepoint_candidate_urls(first_line):
+            try:
+                return _read_csv_from_url(candidate)
+            except Exception as err:
+                last_err = err
+        raise RuntimeError(f"Pointer URL in {os.path.basename(path)} failed: {last_err}")
+
+    return pd.read_csv(path)
+
+
 def load_grid_data(config: dict) -> pd.DataFrame:
     """Load and validate Grid data CSV (no solar column)."""
     data_cfg = config.get("data", {})
     source = data_cfg.get("grid_file", "./data/grid_data.csv")
+    fallback = data_cfg.get("grid_file_fallback", "./data/grid_data_fallback.csv")
 
-    if _is_url(source):
-        df = None
-        last_err = None
-        for candidate in _sharepoint_candidate_urls(source):
-            try:
-                df = _read_csv_from_url(candidate)
-                break
-            except Exception as err:
-                last_err = err
-
-        if df is None:
-            fallback = data_cfg.get("grid_file_fallback", "./data/grid_data.csv")
-            print(f"[WARN] Remote grid URL failed ({last_err}). Falling back to {fallback}")
-            df = pd.read_csv(_resolve_path(fallback))
-    else:
-        path = _resolve_path(source)
-        df = pd.read_csv(path)
+    try:
+        if _is_url(source):
+            df = None
+            last_err = None
+            for candidate in _sharepoint_candidate_urls(source):
+                try:
+                    df = _read_csv_from_url(candidate)
+                    break
+                except Exception as err:
+                    last_err = err
+            if df is None:
+                raise RuntimeError(f"Remote grid URL failed: {last_err}")
+        else:
+            df = _read_local_grid_csv(_resolve_path(source))
+    except Exception as err:
+        print(f"[WARN] Grid source failed ({err}). Falling back to {fallback}")
+        df = pd.read_csv(_resolve_path(fallback))
 
     df["Date"] = pd.to_datetime(df["Date"]).dt.date
     numeric_cols = [
