@@ -1,0 +1,59 @@
+{
+  "table": [
+    {
+      "Date": "2026-03-23",
+      "Day": "Monday",
+      "Time": "12:27:24",
+      "SMB": "SMB_1",
+      "Status": "ACTIVE",
+      "Status Code": 31856806623,
+      "User Status": 0,
+      "Power Output (W)": 0.0,
+      "Power Output (kW)": 0.0
+    },
+    {
+      "Date": "2026-03-23",
+      "Day": "Monday",
+      "Time": "12:27:24",
+      "SMB": "SMB_2",
+      "Status": "ACTIVE",
+      "Status Code": 31856806623,
+      "User Status": 0,
+      "Power Output (W)": 0.0,
+      "Power Output (kW)": 0.0
+    },
+    {
+      "Date": "2026-03-23",
+      "Day": "Monday",
+      "Time": "12:27:24",
+      "SMB": "SMB_3",
+      "Status": "ACTIVE",
+      "Status Code": 31856806623,
+      "User Status": 0,
+      "Power Output (W)": 0.0,
+      "Power Output (kW)": 0.0
+    },
+    {
+      "Date": "2026-03-23",
+      "Day": "Monday",
+      "Time": "12:27:24",
+      "SMB": "SMB_4",
+      "Status": "ACTIVE",
+      "Status Code": 31856806623,
+      "User Status": 0,
+      "Power Output (W)": 0.0,
+      "Power Output (kW)": 0.0
+    },
+    {
+      "Date": "2026-03-23",
+      "Day": "Monday",
+      "Time": "12:27:24",
+      "SMB": "SMB_5",
+      "Status": "ON",
+      "Status Code": 0,
+      "User Status": 0,
+      "Power Output (W)": 5124.0,
+      "Power Output (kW)": 5.124
+    }
+  ]
+}

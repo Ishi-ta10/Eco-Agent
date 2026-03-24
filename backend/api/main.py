@@ -5,6 +5,7 @@ Energy Dashboard API
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import data, kpis, export, scheduler
+from services import scheduler_service
 
 # Create FastAPI app
 app = FastAPI(
@@ -38,6 +39,12 @@ app.include_router(data.router)
 app.include_router(kpis.router)
 app.include_router(export.router)
 app.include_router(scheduler.router)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Load persisted scheduler state on API startup."""
+    scheduler_service.initialize_scheduler_from_config()
 
 
 @app.get("/")

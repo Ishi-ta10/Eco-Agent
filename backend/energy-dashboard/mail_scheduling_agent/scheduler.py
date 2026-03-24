@@ -1,5 +1,5 @@
 """
-scheduler.py — Background scheduler that runs alongside Streamlit.
+scheduler.py — Background scheduler utilities for report emails.
 Uses the `schedule` library in a daemon thread.
 Part of the Mail Scheduling Agent.
 """

@@ -1,5 +1,19 @@
 [
   {
+    "timestamp": "2026-03-22T20:38:55.693382",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report_2026-03-22.csv",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com with HTML report and CSV attachment"
+  },
+  {
+    "timestamp": "2026-03-22T20:26:04.297678",
+    "status": "Success",
+    "recipients": "ishitas@maqsoftware.com",
+    "attachment": "Energy_Report_2026-03-22.csv",
+    "notes": "Email sent successfully to ishitas@maqsoftware.com with HTML report and CSV attachment"
+  },
+  {
     "timestamp": "2026-03-20T15:13:07.960700",
     "status": "Success",
     "recipients": "ishitas@maqsoftware.com",
@@ -61,19 +75,5 @@
     "recipients": "ishitas@maqsoftware.com",
     "attachment": "Energy_Report_2026-03-20.csv",
     "notes": "Email sent successfully to ishitas@maqsoftware.com with HTML report and CSV attachment"
-  },
-  {
-    "timestamp": "2026-03-20T14:33:57.880868",
-    "status": "Success",
-    "recipients": "ishitas@maqsoftware.com",
-    "attachment": "Energy_Report.html",
-    "notes": "Email sent successfully to ishitas@maqsoftware.com"
-  },
-  {
-    "timestamp": "2026-03-20T14:32:49.072268",
-    "status": "Success",
-    "recipients": "ishitas@maqsoftware.com",
-    "attachment": "Energy_Report.html",
-    "notes": "Email sent successfully to ishitas@maqsoftware.com"
   }
 ]

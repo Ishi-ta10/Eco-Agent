@@ -7,7 +7,7 @@ The email table follows the Electrical Optimization (1) Excel ECS sheet format.
 import os
 import json
 import smtplib
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -17,7 +17,7 @@ import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 from dotenv import load_dotenv
 
-from data_ingestion_agent.loader import load_all
+from data_ingestion_agent.loader import load_all, load_solar_last7_data
 from data_ingestion_agent.processor import build_unified_dataframe, compute_overview_kpis
 from data_ingestion_agent.exporter import export_ecs_style_xlsx
 
@@ -56,97 +56,436 @@ def _append_log(entry: dict):
 
 
 def _build_ecs_table_html(unified: pd.DataFrame) -> str:
-    """Build the ECS-format data table as a raw HTML string (no Jinja2 needed)."""
-    ecs_columns = [
-        "Date", "Day", "Time", "Ambient Temp (°C)",
-        "Grid KWh", "Solar KWh", "Total KWh",
-        "Total Cost (INR)", "Energy Saving (INR)",
+    """Build the mail table in the updated format shown in the scheduler UI preview."""
+    columns = [
+        {
+            "header": "Date",
+            "sources": ["Date"],
+            "align": "left",
+            "format": "date",
+        },
+        {
+            "header": "Day",
+            "sources": ["Day"],
+            "align": "left",
+            "format": "text",
+        },
+        {
+            "header": "Time",
+            "sources": ["Time"],
+            "align": "left",
+            "format": "time",
+        },
+        {
+            "header": "Ambient Temperature °C",
+            "sources": ["Ambient Temp (°C)", "Ambient Temperature °C"],
+            "align": "left",
+            "format": "text",
+        },
+        {
+            "header": "Grid Units Consumed (KWh)",
+            "sources": ["Grid KWh", "Grid Units Consumed (KWh)"],
+            "align": "right",
+            "format": "number",
+        },
+        {
+            "header": "Solar Units Consumed(KWh)",
+            "sources": ["Solar KWh", "Solar Units Generated (KWh)"],
+            "align": "right",
+            "format": "number",
+        },
+        {
+            "header": "Total Units Consumed (KWh)",
+            "sources": ["Total KWh", "Total Units Consumed (KWh)"],
+            "align": "right",
+            "format": "number",
+        },
+        {
+            "header": "Total Units Consumed in INR",
+            "sources": ["Total Cost (INR)", "Total Units Consumed in INR"],
+            "align": "right",
+            "format": "currency",
+        },
+        {
+            "header": "Energy Saving in INR",
+            "sources": ["Energy Saving (INR)", "Grid Energy Saving (INR)", "Energy Saving in INR"],
+            "align": "right",
+            "format": "currency",
+        },
+        {
+            "header": "Diesel consumed",
+            "sources": ["Diesel consumed", "Fuel Consumed (Litres)", "Diesel Consumed (Litres)"],
+            "align": "right",
+            "format": "number",
+        },
     ]
-    ecs_display_headers = [
-        "Date", "Day", "Time", "Ambient Temperature °C",
-        "Grid Units Consumed (KWh)", "Solar Farm Energy (KWh)",
-        "Total Units Consumed (KWh)",
-        "Total Units Consumed in INR", "Energy Saving in INR",
+
+    def _pick_source(spec):
+        for source in spec["sources"]:
+            if source in unified.columns:
+                return source
+        return None
+
+    def _format_cell(value, fmt):
+        if value is None or (isinstance(value, float) and pd.isna(value)):
+            return ""
+
+        if fmt == "date":
+            parsed = pd.to_datetime(value, errors="coerce")
+            if pd.isna(parsed):
+                return str(value)
+            return parsed.strftime("%d-%b-%y")
+
+        if fmt == "time":
+            text = str(value)
+            if text.startswith("0") and len(text) >= 4 and text[1].isdigit():
+                return text[1:]
+            return text
+
+        if fmt in {"number", "currency"}:
+            numeric = pd.to_numeric(value, errors="coerce")
+            if pd.isna(numeric):
+                return ""
+            rounded = round(float(numeric), 2)
+            if abs(rounded - int(rounded)) < 1e-9:
+                return str(int(rounded))
+            return f"{rounded:.2f}"
+
+        return str(value)
+
+    parts = [
+        '<table width="100%" cellpadding="0" cellspacing="0" '
+        'style="border-collapse:collapse; font-size:12px; background-color:#2b2b2b; color:#f2f2f2;">'
     ]
-    right_align_cols = {"Grid KWh", "Solar KWh", "Total KWh", "Total Cost (INR)", "Energy Saving (INR)"}
-    currency_cols = {"Total Cost (INR)", "Energy Saving (INR)"}
 
-    avail_cols = [c for c in ecs_columns if c in unified.columns]
-    avail_headers = [ecs_display_headers[ecs_columns.index(c)] for c in avail_cols]
-
-    rows_data = unified[avail_cols].to_dict("records")
-
-    # Totals row
-    totals = {}
-    for col in avail_cols:
-        if col in ["Date", "Day", "Time", "Ambient Temp (°C)"]:
-            totals[col] = "Total" if col == "Date" else ""
-        else:
-            totals[col] = round(unified[col].sum(), 2)
-
-    parts = ['<table width="100%" cellpadding="0" cellspacing="0" '
-             'style="border-collapse:collapse; font-size:12px;">']
-
-    # Header row
     parts.append("<tr>")
-    for hdr in avail_headers:
+    for spec in columns:
         parts.append(
-            f'<th style="background-color:#1F3864; color:#ffffff; padding:8px 10px; '
-            f'text-align:left; border:1px solid #ccc; font-size:11px;">{hdr}</th>'
+            f'<th style="background-color:#2f2f2f; color:#f7f7f7; padding:8px 8px; '
+            f'text-align:left; border:1px solid #5a5a5a; font-size:13px; font-weight:bold;">{spec["header"]}</th>'
         )
     parts.append("</tr>")
 
-    # Data rows
-    for idx, row in enumerate(rows_data):
-        bg = "#EBF2FB" if idx % 2 == 0 else "#ffffff"
+    for _, row in unified.iterrows():
         parts.append("<tr>")
-        for col in avail_cols:
-            val = row.get(col, "")
-            align = "right" if col in right_align_cols else "left"
-            if col in currency_cols and isinstance(val, (int, float)):
-                cell_text = f"\u20b9{val:,.2f}"
-            elif isinstance(val, float):
-                cell_text = f"{val:,.2f}"
+        for spec in columns:
+            source_col = _pick_source(spec)
+            if source_col:
+                raw_value = row[source_col]
+            elif spec["format"] in {"number", "currency"}:
+                raw_value = 0
             else:
-                cell_text = str(val)
+                raw_value = ""
+            cell_text = _format_cell(raw_value, spec["format"])
             parts.append(
-                f'<td style="padding:6px 10px; border:1px solid #ddd; '
-                f'text-align:{align}; background-color:{bg};">{cell_text}</td>'
+                f'<td style="padding:8px 6px; border:1px solid #555; text-align:{spec["align"]}; '
+                f'background-color:#2b2b2b; color:#f2f2f2;">{cell_text}</td>'
             )
         parts.append("</tr>")
 
-    # Total row
-    parts.append("<tr>")
-    for col in avail_cols:
-        val = totals[col]
-        align = "right" if col in right_align_cols else "left"
-        if col in currency_cols and isinstance(val, (int, float)):
-            cell_text = f"\u20b9{val:,.2f}"
-        elif isinstance(val, float):
-            cell_text = f"{val:,.2f}"
-        else:
-            cell_text = str(val)
-        parts.append(
-            f'<td style="padding:8px 10px; border:1px solid #ccc; '
-            f'text-align:{align}; background-color:#D6E4F0; '
-            f'font-weight:bold; border-top:2px solid #1F3864;">{cell_text}</td>'
-        )
-    parts.append("</tr>")
-
     parts.append("</table>")
+    return "\n".join(parts)
+
+
+def _derive_smb_statuses(unified: pd.DataFrame) -> dict:
+    """Derive latest SMB status snapshot from unified data."""
+    smb_names = ["SMB1", "SMB2", "SMB3", "SMB4", "SMB5"]
+    statuses_local = {smb: "unknown" for smb in smb_names}
+
+    if "Inverter Status" not in unified.columns:
+        return statuses_local
+
+    status_rows = unified[unified["Inverter Status"].notna()].copy()
+    if status_rows.empty:
+        return statuses_local
+
+    # Use latest status row so stale historical faults don't dominate the summary.
+    status_rows["Date"] = pd.to_datetime(status_rows["Date"], errors="coerce")
+    status_rows = status_rows.sort_values(["Date", "Time"], ascending=[False, False])
+    latest_status = str(status_rows.iloc[0].get("Inverter Status", "")).strip()
+    normalized = latest_status.lower()
+
+    if normalized == "all online":
+        return {smb: "online" for smb in smb_names}
+
+    statuses_local = {smb: "online" for smb in smb_names}
+    if "fault" in normalized:
+        matched_any = False
+        for smb in smb_names:
+            if smb.lower() in normalized:
+                statuses_local[smb] = "fault"
+                matched_any = True
+        if not matched_any:
+            statuses_local = {smb: "fault" for smb in smb_names}
+
+    return statuses_local
+
+
+def _extract_json_object(text: str) -> dict | None:
+    """Best-effort extraction of a JSON object from model text output."""
+    if not text:
+        return None
+
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`")
+        if cleaned.lower().startswith("json"):
+            cleaned = cleaned[4:].strip()
+
+    try:
+        parsed = json.loads(cleaned)
+        return parsed if isinstance(parsed, dict) else None
+    except Exception:
+        pass
+
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        return None
+
+    snippet = cleaned[start : end + 1]
+    try:
+        parsed = json.loads(snippet)
+        return parsed if isinstance(parsed, dict) else None
+    except Exception:
+        return None
+
+
+def _coerce_bullet_list(value, fallback: list[str]) -> list[str]:
+    if isinstance(value, list):
+        items = [str(v).strip() for v in value if str(v).strip()]
+        return items[:6] if items else fallback
+    if isinstance(value, str):
+        lines = []
+        for line in value.splitlines():
+            item = line.strip().lstrip("-*").strip()
+            if item:
+                lines.append(item)
+        return lines[:6] if lines else fallback
+    return fallback
+
+
+def _generate_ai_summary(unified: pd.DataFrame, kpis: dict, smb_statuses: dict, diesel_total: float) -> dict | None:
+    """Generate insights/recommendations from Groq SDK chat completions API."""
+    _load_env()
+    api_key = (os.getenv("GROQ_API_KEY") or os.getenv("GROK_API_KEY") or "").strip()
+    if not api_key:
+        return None
+
+    try:
+        from groq import Groq
+    except Exception as err:
+        print(f"[WARN] Groq SDK not available: {err}")
+        return None
+
+    configured_model = (os.getenv("GROQ_MODEL") or "llama3-70b-8192").strip()
+    model_candidates = []
+    for model_name in [
+        configured_model,
+        "llama3-70b-8192",
+        "llama-3.1-8b-instant",
+        "llama-3.3-70b-versatile",
+        "groq/compound-mini",
+    ]:
+        if model_name and model_name not in model_candidates:
+            model_candidates.append(model_name)
+
+    client = Groq(api_key=api_key)
+
+    grid_col = "Grid KWh" if "Grid KWh" in unified.columns else "Grid Units Consumed (KWh)"
+    solar_col = "Solar KWh" if "Solar KWh" in unified.columns else "Solar Units Generated (KWh)"
+
+    payload = {
+        "summary": {
+            "total_kwh": float(kpis.get("total_kwh", 0) or 0),
+            "solar_kwh": float(kpis.get("solar_kwh", 0) or 0),
+            "solar_pct": float(kpis.get("solar_pct", 0) or 0),
+            "total_cost_inr": float(kpis.get("total_cost", 0) or 0),
+            "energy_saved_inr": float(kpis.get("energy_saved", 0) or 0),
+            "avg_temp_c": float(kpis.get("avg_temp", 0) or 0),
+            "diesel_consumed": float(diesel_total or 0),
+        },
+        "source_wise_energy_kwh": {
+            "grid": float(pd.to_numeric(unified.get(grid_col, 0), errors="coerce").fillna(0).sum())
+            if grid_col in unified.columns
+            else 0.0,
+            "solar": float(pd.to_numeric(unified.get(solar_col, 0), errors="coerce").fillna(0).sum())
+            if solar_col in unified.columns
+            else 0.0,
+        },
+        "inverter_status": smb_statuses,
+        "records": (
+            unified.tail(10)[
+                [
+                    c
+                    for c in [
+                        "Date",
+                        "Day",
+                        "Time",
+                        "Grid KWh",
+                        "Solar KWh",
+                        "Total KWh",
+                        "Energy Saving (INR)",
+                        "Diesel consumed",
+                        "Inverter Status",
+                    ]
+                    if c in unified.columns
+                ]
+            ]
+            .fillna(0)
+            .to_dict(orient="records")
+        ),
+    }
+
+    user_prompt = (
+        "using the given energy consumption data, generate insights and recommendations, this may include a "
+        "comparison of the energy generated source wise, the estimated savings, status of the machines(inactive/active), "
+        "RECOMMENDATIONS for optimizing the performance e.g cleaning may be needed, hardware failure issue.\n\n"
+        "GUIDELINES: DO NOT HALLUCINATE, INSIGHTS AND RECOMMENDATIONS SHOULD STRICTLY BE BASED ON THE INFORMATION PROVIDED"
+    )
+
+    last_err = None
+    for model in model_candidates:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                temperature=0.2,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an intelligent agent.",
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            f"{user_prompt}\n\nSOURCE OF KNOWLEDGE:\n{json.dumps(payload, default=str)}\n\n"
+                            "Return strict JSON only with this schema: "
+                            '{"insights":["..."],"recommendations":["..."]}. '
+                            "Do not include markdown or extra keys."
+                        ),
+                    },
+                ],
+            )
+
+            content = ""
+            if getattr(response, "choices", None):
+                content = response.choices[0].message.content or ""
+
+            parsed = _extract_json_object(content)
+            if not parsed:
+                continue
+
+            insights = _coerce_bullet_list(parsed.get("insights"), [])
+            recommendations = _coerce_bullet_list(parsed.get("recommendations"), [])
+            if not insights and not recommendations:
+                continue
+
+            return {
+                "insights": insights,
+                "recommendations": recommendations,
+            }
+        except Exception as err:
+            last_err = err
+            continue
+
+    if last_err is not None:
+        print(f"[WARN] AI summary generation failed: {last_err}")
+    return None
+
+
+def generate_smart_summary(unified: pd.DataFrame, kpis: dict) -> dict:
+    """Build smart insights/recommendations using LLM with deterministic fallback."""
+    smb_statuses = _derive_smb_statuses(unified)
+    total_inverters = len(smb_statuses) if smb_statuses else 5
+    fault_count = max(total_inverters - sum(1 for s in smb_statuses.values() if s == "online"), 0)
+
+    diesel_col = None
+    for candidate in ["Diesel consumed", "Fuel Consumed (Litres)"]:
+        if candidate in unified.columns:
+            diesel_col = candidate
+            break
+    diesel_total = (
+        float(pd.to_numeric(unified[diesel_col], errors="coerce").fillna(0).sum())
+        if diesel_col
+        else 0.0
+    )
+
+    solar_pct = float(kpis.get("solar_pct", 0) or 0)
+
+    insights = []
+    recommendations = []
+
+    if fault_count > 0:
+        insights.append(f"{fault_count} of {total_inverters} inverters are not online in the latest snapshot.")
+        recommendations.append("Inspect faulted inverter lines and restore all SMB units to online status.")
+    else:
+        insights.append(f"All {total_inverters} inverters are online and available for generation.")
+        recommendations.append("Maintain current inverter health with preventive checks.")
+
+    insights.append(f"Solar contribution is {solar_pct:.1f}% for the current rolling 7-day window.")
+    if solar_pct < 20:
+        recommendations.append("Increase panel cleaning frequency and shift daytime loads toward solar generation.")
+
+    if diesel_total > 0:
+        insights.append(f"Diesel consumed is {diesel_total:.1f} in the current rolling 7-day window.")
+        recommendations.append("Analyze DG usage intervals and reduce generator dependency where possible.")
+    else:
+        insights.append("No diesel consumption is recorded for the current rolling 7-day window.")
+
+    ai_summary = _generate_ai_summary(unified, kpis, smb_statuses, diesel_total)
+    if ai_summary:
+        insights = _coerce_bullet_list(ai_summary.get("insights"), insights)
+        recommendations = _coerce_bullet_list(ai_summary.get("recommendations"), recommendations)
+        source = "llm"
+    else:
+        source = "fallback"
+
+    return {
+        "insights": insights,
+        "recommendations": recommendations,
+        "source": source,
+    }
+
+
+def _build_executive_summary_html(unified: pd.DataFrame, kpis: dict) -> str:
+    """Create executive summary with insights and recommendations."""
+    summary = generate_smart_summary(unified, kpis)
+    insights = summary.get("insights", [])
+    recommendations = summary.get("recommendations", [])
+
+    parts = [
+        '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; background:#F8FBFF; border:1px solid #D7E4F2;">',
+        '<tr><td style="padding:12px 14px; font-size:13px; color:#1F3864; font-weight:bold;">Executive Summary</td></tr>',
+        '<tr><td style="padding:0 14px 10px 14px;">',
+        '<div style="font-size:12px; color:#2f2f2f; font-weight:bold; margin-bottom:4px;">Insights</div>',
+        '<ul style="margin:0 0 10px 18px; padding:0; font-size:12px; color:#333;">',
+    ]
+
+    for item in insights:
+        parts.append(f"<li style=\"margin:0 0 4px 0;\">{item}</li>")
+
+    parts.extend([
+        '</ul>',
+        '<div style="font-size:12px; color:#2f2f2f; font-weight:bold; margin-bottom:4px;">Recommendations</div>',
+        '<ul style="margin:0 0 2px 18px; padding:0; font-size:12px; color:#333;">',
+    ])
+
+    for item in recommendations:
+        parts.append(f"<li style=\"margin:0 0 4px 0;\">{item}</li>")
+
+    parts.extend([
+        '</ul>',
+        '</td></tr>',
+        '</table>',
+    ])
+
     return "\n".join(parts)
 
 
 def _build_inverter_table_html(unified: pd.DataFrame) -> str:
     """Build inverter status as card-style blocks for email-safe rendering."""
     smb_names = ["SMB1", "SMB2", "SMB3", "SMB4", "SMB5"]
-    statuses = {}
-    for smb in smb_names:
-        col = f"{smb} (KWh)"
-        if col in unified.columns:
-            statuses[smb] = "online" if (unified[col].fillna(0) > 0).all() else "fault"
-        else:
-            statuses[smb] = "unknown"
+    statuses = _derive_smb_statuses(unified)
 
     parts = ['<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate; border-spacing:8px 0;">']
     parts.append("<tr>")
@@ -194,9 +533,11 @@ def build_email_html(unified: pd.DataFrame, config: dict, custom_message: str = 
     # Pre-render complex HTML tables in Python
     ecs_table_html = _build_ecs_table_html(unified)
     inverter_table_html = _build_inverter_table_html(unified)
+    executive_summary_html = _build_executive_summary_html(unified, kpis)
 
     if include_sections is None:
         include_sections = {
+            "executive_summary": True,
             "summary_kpis": True,
             "unified_table": True,
             "grid_summary": True,
@@ -214,6 +555,7 @@ def build_email_html(unified: pd.DataFrame, config: dict, custom_message: str = 
         kpi_total_cost=kpi_total_cost,
         kpi_energy_saved=kpi_energy_saved,
         kpi_avg_temp=kpi_avg_temp,
+        executive_summary_html=executive_summary_html,
         ecs_table_html=ecs_table_html,
         inverter_table_html=inverter_table_html,
         include=include_sections,
@@ -287,11 +629,24 @@ def send_daily_report():
     config, grid, solar, diesel = load_all()
     unified = build_unified_dataframe(grid, solar, diesel)
 
-    # Last 30 days of data
-    cutoff = date.today() - timedelta(days=30)
-    day_data = unified[unified["Date"] >= cutoff]
-    if day_data.empty:
-        day_data = unified  # fallback to all data
+    # Keep email data aligned to the same 7-day date set shown in dashboard tabs.
+    day_data = unified.copy()
+    try:
+        solar_last7_df = load_solar_last7_data(config)
+        if len(solar_last7_df) > 0 and "Date" in solar_last7_df.columns:
+            allowed_dates = set(pd.to_datetime(solar_last7_df["Date"], errors="coerce").dt.normalize().dropna())
+            unified_dates = pd.to_datetime(day_data["Date"], errors="coerce").dt.normalize()
+            day_data = day_data[unified_dates.isin(allowed_dates)].copy()
+    except Exception as err:
+        print(f"[WARN] Could not align email report to dashboard 7-day date set: {err}")
+
+    # Fallback to latest 7 dates if alignment source is unavailable.
+    if day_data.empty and len(unified) > 0:
+        working = unified.copy()
+        working["_date_norm"] = pd.to_datetime(working["Date"], errors="coerce").dt.normalize()
+        unique_dates = sorted([d for d in working["_date_norm"].dropna().unique()])
+        keep_dates = set(unique_dates[-7:])
+        day_data = working[working["_date_norm"].isin(keep_dates)].drop(columns=["_date_norm"], errors="ignore")
 
     sched_config = _read_scheduler_config()
     to_raw = sched_config.get("to", config.get("email", {}).get("default_to", ""))

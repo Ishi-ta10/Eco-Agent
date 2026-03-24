@@ -1,32 +1,15 @@
-# Python
+# Python cache artifacts
 **/__pycache__/
 **/*.py[cod]
-**/.pytest_cache/
-**/.mypy_cache/
-**/.venv/
+
+# Local virtual environments
+.venv/
 backend/api-venv/
-venv/
+backend/energy-dashboard/venv/
 
-# Node
-frontend/node_modules/
-frontend/dist/
-
-# Environment and secrets
-**/.env
-**/.env.local
-**/.env.development.local
-**/.env.production.local
-
-# Runtime artifacts
-**/output/*.xlsx
-**/output/*.csv
-**/output/scheduler_log.json
-**/output/scheduler_module_debug.txt
-**/output/_debug_scheduler_email.html
-backend/energy-dashboard/uploaded_templates/
-
-# IDE / OS
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+# Generated backend email/debug outputs
+backend/energy-dashboard/output/*.html
+backend/energy-dashboard/output/*.txt
+backend/energy-dashboard/output/_debug_scheduler_email.html
+backend/energy-dashboard/output/test_email.html
+backend/energy-dashboard/output/scheduler_module_debug.txt

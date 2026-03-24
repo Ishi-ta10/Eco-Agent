@@ -1,0 +1,8 @@
+Date,Day,Time,Solar Units Generated (KWh),Inverter Status,SMB1 (KWh),SMB2 (KWh),SMB3 (KWh),SMB4 (KWh),SMB5 (KWh),Plant Capacity (KW),Irradiance (W/m²)
+2026-03-16,Monday,09:00,991,All Online,0.0,0.0,0.0,0.0,5.124,598.6,0
+2026-03-17,Tuesday,09:00,771,All Online,0.0,0.0,0.0,0.0,5.124,598.6,0
+2026-03-18,Wednesday,09:00,790,All Online,0.0,0.0,0.0,0.0,5.124,598.6,0
+2026-03-19,Thursday,09:00,160,All Online,0.0,0.0,0.0,0.0,5.124,598.6,0
+2026-03-20,Friday,09:00,195,All Online,0.0,0.0,0.0,0.0,5.124,598.6,0
+2026-03-21,Saturday,09:00,819,All Online,0.0,0.0,0.0,0.0,5.124,598.6,0
+2026-03-22,Sunday,09:00,802,All Online,0.0,0.0,0.0,0.0,5.124,598.6,0

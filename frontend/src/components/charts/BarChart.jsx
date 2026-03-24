@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   BarChart,
   Bar,
@@ -8,9 +8,15 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 
-export const BarChartComponent = ({ data, title, dataKeys, colors, xDataKey = 'Date' }) => {
+export const BarChartComponent = ({
+  data,
+  title,
+  dataKeys,
+  colors,
+  xDataKey = "Date",
+}) => {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">{title}</h3>
@@ -20,8 +26,13 @@ export const BarChartComponent = ({ data, title, dataKeys, colors, xDataKey = 'D
           <XAxis dataKey={xDataKey} stroke="#6b7280" />
           <YAxis stroke="#6b7280" />
           <Tooltip
-            contentStyle={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
-            formatter={(value) => value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            contentStyle={{
+              backgroundColor: "#f9fafb",
+              border: "1px solid #e5e7eb",
+            }}
+            formatter={(value) =>
+              value.toLocaleString("en-IN", { maximumFractionDigits: 2 })
+            }
           />
           <Legend />
           {dataKeys.map((key, idx) => (

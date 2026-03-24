@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { useDateStore } from "../../store/dateStore";
-import { useOverviewKPIs, useUnifiedData } from "../../hooks/useEnergyData";
+import {
+  useOverviewKPIs,
+  useSolarData,
+  useUnifiedData,
+} from "../../hooks/useEnergyData";
 import { KPICard } from "../common/KPICard";
 import { DataTable } from "../common/DataTable";
 import { ExportButton } from "../common/ExportButton";
@@ -71,6 +75,16 @@ export const OverviewTab = () => {
     isLoading: dataLoading,
     error: dataError,
   } = useUnifiedData(startDate, endDate);
+  const {
+    data: solarData,
+    isLoading: solarLoading,
+    error: solarError,
+  } = useSolarData(startDate, endDate);
+  const {
+    data: fallbackSolarData,
+    isLoading: fallbackSolarLoading,
+    error: fallbackSolarError,
+  } = useSolarData();
 
   const handleExport = async () => {
     try {
@@ -94,11 +108,11 @@ export const OverviewTab = () => {
     }
   };
 
-  if (kpiLoading || dataLoading) {
+  if (kpiLoading || dataLoading || solarLoading || fallbackSolarLoading) {
     return <LoadingSpinner message="Loading overview data..." />;
   }
 
-  if (kpiError || dataError) {
+  if (kpiError || dataError || solarError || fallbackSolarError) {
     return (
       <div className="text-center py-12">
         <p className="text-[var(--danger-600)] text-lg">
@@ -111,9 +125,26 @@ export const OverviewTab = () => {
     );
   }
 
+  const selectedSolarRows = solarData?.data || [];
+  const fallbackSolarRows = fallbackSolarData?.data || [];
+  const useSolarFallback =
+    selectedSolarRows.length === 0 && fallbackSolarRows.length > 0;
+  const activeSolarRows = useSolarFallback
+    ? fallbackSolarRows
+    : selectedSolarRows;
+  const activeSolarRange = useSolarFallback
+    ? fallbackSolarData?.date_range
+    : solarData?.date_range;
+
   const chartData = buildOverviewChartData(unifiedData?.data || []);
   const totalGrid = chartData.reduce((sum, row) => sum + row.Grid, 0);
-  const totalSolar = chartData.reduce((sum, row) => sum + row.Solar, 0);
+  const rangeSolarTotal = chartData.reduce((sum, row) => sum + row.Solar, 0);
+  const fallbackSolarTotal = activeSolarRows.reduce(
+    (sum, row) =>
+      sum + asNumber(row, ["Solar Units Generated (KWh)", "Solar KWh"]),
+    0,
+  );
+  const totalSolar = rangeSolarTotal > 0 ? rangeSolarTotal : fallbackSolarTotal;
   const totalDiesel = chartData.reduce((sum, row) => sum + row.Diesel, 0);
   const combinedTotal = totalGrid + totalSolar + totalDiesel;
 
@@ -169,6 +200,12 @@ export const OverviewTab = () => {
     },
   ];
 
+  const smartInsights = Array.isArray(kpiData?.insights) ? kpiData.insights : [];
+  const smartRecommendations = Array.isArray(kpiData?.recommendations)
+    ? kpiData.recommendations
+    : [];
+  const insightsSource = kpiData?.insights_source || "fallback";
+
   return (
     <div className="space-y-8">
       {/* KPI Cards Grid */}
@@ -177,6 +214,17 @@ export const OverviewTab = () => {
           <TrendingUp className="text-[var(--accent-500)]" size={28} />
           Key Performance Indicators
         </h2>
+        {useSolarFallback && (
+          <div className="mb-4 surface-card rounded-xl p-4 border border-[var(--accent-200)] bg-[var(--accent-50)]">
+            <p className="text-sm text-[var(--text-primary)]">
+              No solar records were found in the selected date range. Overview
+              is using latest available solar data
+              {activeSolarRange?.min_date && activeSolarRange?.max_date
+                ? ` from ${activeSolarRange.min_date} to ${activeSolarRange.max_date}.`
+                : "."}
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <KPICard
             title="Total Energy"
@@ -187,7 +235,7 @@ export const OverviewTab = () => {
           />
           <KPICard
             title="Solar Generated"
-            value={kpiData?.solar_kwh || 0}
+            value={totalSolar || kpiData?.solar_kwh || 0}
             unit="kWh"
             color="yellow"
             icon={Sun}
@@ -277,28 +325,59 @@ export const OverviewTab = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {insightCards.map((insight) => {
-          const Icon = insight.icon;
-          return (
-            <div key={insight.title} className="surface-card rounded-2xl p-5">
-              <div className="flex items-start gap-3">
-                <div className="h-10 w-10 rounded-xl bg-[var(--accent-100)] flex items-center justify-center">
-                  <Icon className={insight.accent} size={20} />
-                </div>
-                <div>
-                  <p className="font-semibold text-[var(--text-primary)]">
-                    {insight.title}
-                  </p>
-                  <p className="text-sm text-[var(--text-muted)] mt-1">
-                    {insight.text}
-                  </p>
+      {smartInsights.length > 0 || smartRecommendations.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="surface-card rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-[var(--text-primary)]">
+                Insights
+              </h3>
+              <span className="text-xs px-2 py-1 rounded-full bg-[var(--accent-100)] text-[var(--text-muted)] uppercase tracking-wide">
+                {insightsSource}
+              </span>
+            </div>
+            <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--text-muted)]">
+              {smartInsights.map((item, idx) => (
+                <li key={`insight-${idx}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="surface-card rounded-2xl p-5">
+            <h3 className="font-semibold text-[var(--text-primary)] mb-3">
+              Recommendations
+            </h3>
+            <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--text-muted)]">
+              {smartRecommendations.map((item, idx) => (
+                <li key={`recommendation-${idx}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {insightCards.map((insight) => {
+            const Icon = insight.icon;
+            return (
+              <div key={insight.title} className="surface-card rounded-2xl p-5">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-[var(--accent-100)] flex items-center justify-center">
+                    <Icon className={insight.accent} size={20} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[var(--text-primary)]">
+                      {insight.title}
+                    </p>
+                    <p className="text-sm text-[var(--text-muted)] mt-1">
+                      {insight.text}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Data Table */}
       <div>

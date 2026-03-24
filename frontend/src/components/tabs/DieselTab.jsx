@@ -73,7 +73,9 @@ export const DieselTab = () => {
     dieselData?.data?.map((item) => ({
       Date: item.Date,
       "DG Consumption": parseFloat(item["DG Units Consumed (KWh)"]) || 0,
-      "Fuel Used": parseFloat(item["Fuel Consumed (Litres)"]) || 0,
+      "Diesel consumed":
+        parseFloat(item["Diesel consumed"] ?? item["Fuel Consumed (Litres)"]) ||
+        0,
     })) || [];
 
   const activeDieselData =
@@ -103,9 +105,9 @@ export const DieselTab = () => {
             icon={Clock}
           />
           <KPICard
-            title="Fuel Consumed"
+            title="Diesel consumed"
             value={kpiData?.total_fuel || 0}
-            unit="Litres"
+            unit="Liters"
             color="yellow"
             icon={Droplet}
           />
@@ -122,7 +124,7 @@ export const DieselTab = () => {
       <StackedBarChart
         data={chartData}
         title="Diesel Generator Usage"
-        dataKeys={["DG Consumption", "Fuel Used"]}
+        dataKeys={["DG Consumption", "Diesel consumed"]}
         colors={["#b54747", "#d39b22"]}
       />
 

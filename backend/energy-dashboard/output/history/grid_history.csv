@@ -1,0 +1,8 @@
+Date,Day,Time,Ambient Temperature °C,Grid Units Consumed (KWh),Total Units Consumed (KWh),Total Units Consumed in INR,Energy Saving in INR,diesel_consumed
+2026-03-16,Friday,09:00,11-31,4242,4939,30160.62,4955.67,17 Liter
+2026-03-17,Saturday,09:00,11-31,3612,4114,25681.32,3569.22,12 Liter
+2026-03-18,Sunday,09:00,11-31,3612,3859,25681.32,1756.17,15 Liter
+2026-03-19,Monday,09:00,11-31,1400,2391,9954.0,7046.01,19 Liter
+2026-03-20,Tuesday,09:00,11-31,3584,4421,25482.24,5951.07,17 Liter
+2026-03-21,Wednesday,09:00,11-31,4186,4957,29762.46,5481.81,8 Liter
+2026-03-22,Thursday,09:00,9-29,4088,4878,29065.68,5616.9,11 Liter

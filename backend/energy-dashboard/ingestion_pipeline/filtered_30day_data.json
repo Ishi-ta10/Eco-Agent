@@ -1,0 +1,1398 @@
+{
+  "data_extraction_info": {
+    "last_update": "2026-03-23T12:27:26.355640",
+    "extraction_date": "2026-03-23",
+    "period": "Last 7 Days",
+    "data_source": "solar_meter only from /livebar/gen_info API",
+    "data_granularity": "All readings (hourly/timestamp-level data)"
+  },
+  "period_summary": {
+    "total_generation_30days_kWh": 0,
+    "average_daily_generation_kWh": 0,
+    "peak_daily_generation_kWh": 0,
+    "minimum_daily_generation_kWh": 0,
+    "days_with_data": 0,
+    "zero_generation_days": 0,
+    "total_period_days": 7
+  },
+  "weekly_breakdown": {
+    "week_1": {
+      "generation_kWh": 0.0,
+      "days": {
+        "2026-03-16": {
+          "generation_kWh": 0.0,
+          "efficiency_percent": 0
+        },
+        "2026-03-17": {
+          "generation_kWh": 0.0,
+          "efficiency_percent": 0
+        },
+        "2026-03-18": {
+          "generation_kWh": 0.0,
+          "efficiency_percent": 0
+        },
+        "2026-03-19": {
+          "generation_kWh": 0.0,
+          "efficiency_percent": 0
+        },
+        "2026-03-20": {
+          "generation_kWh": 0.0,
+          "efficiency_percent": 0
+        },
+        "2026-03-21": {
+          "generation_kWh": 0.0,
+          "efficiency_percent": 0
+        },
+        "2026-03-22": {
+          "generation_kWh": 0.0,
+          "efficiency_percent": 0
+        }
+      }
+    }
+  },
+  "daily_timeline": {
+    "2026-03-22": {
+      "date": "Sunday, March 22, 2026",
+      "generation_kWh": 0.0,
+      "days_ago": 0,
+      "efficiency_percent": 0,
+      "total_readings": 3,
+      "all_readings": [
+        {
+          "timestamp": "2026-03-22T00:00:30",
+          "unix_timestamp": 1774117830,
+          "start_time": 1774117830,
+          "end_time": 1774139430,
+          "date": "2026-03-22",
+          "time": "00:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 350142.0,
+          "end_value": 350142.0,
+          "duration_seconds": 21600,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1774117830,
+            "end_time": 1774139430,
+            "start_value": "350142.000",
+            "end_value": "350142.000",
+            "value": "0.000",
+            "duration": 21600,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1774117800,
+                "end_time": 1774139400
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3726
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "bea4b7774636354eb8db5fdb064ef56c"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-22T06:00:30",
+          "unix_timestamp": 1774139430,
+          "start_time": 1774139430,
+          "end_time": 1774186230,
+          "date": "2026-03-22",
+          "time": "06:00:30",
+          "generation_wh": 802.0,
+          "generation_kwh": 0.802,
+          "start_value": 350142.0,
+          "end_value": 350944.0,
+          "duration_seconds": 46800,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1774139430,
+            "end_time": 1774186230,
+            "start_value": "350142.000",
+            "end_value": "350944.000",
+            "value": "802.000",
+            "duration": 46800,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1774139400,
+                "end_time": 1774186200
+              },
+              "pred_mf": [],
+              "ssp": "NC",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 802,
+                    "actual": 802,
+                    "ncr_sum": 3726
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "da8c1abfd2042ffae6cceeb35c185543"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-22T19:00:30",
+          "unix_timestamp": 1774186230,
+          "start_time": 1774186230,
+          "end_time": 1774204230,
+          "date": "2026-03-22",
+          "time": "19:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 350944.0,
+          "end_value": 350944.0,
+          "duration_seconds": 18000,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1774186230,
+            "end_time": 1774204230,
+            "start_value": "350944.000",
+            "end_value": "350944.000",
+            "value": "0.000",
+            "duration": 18000,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1774186200,
+                "end_time": 1774204200
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3726
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "b66f63c9792949bb372aafba17b2e1ba"
+              ]
+            },
+            "comm_pending": 1
+          }
+        }
+      ]
+    },
+    "2026-03-21": {
+      "date": "Saturday, March 21, 2026",
+      "generation_kWh": 0.0,
+      "days_ago": 1,
+      "efficiency_percent": 0,
+      "total_readings": 3,
+      "all_readings": [
+        {
+          "timestamp": "2026-03-21T00:00:30",
+          "unix_timestamp": 1774031430,
+          "start_time": 1774031430,
+          "end_time": 1774053030,
+          "date": "2026-03-21",
+          "time": "00:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 349323.0,
+          "end_value": 349323.0,
+          "duration_seconds": 21600,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1774031430,
+            "end_time": 1774053030,
+            "start_value": "349323.000",
+            "end_value": "349323.000",
+            "value": "0.000",
+            "duration": 21600,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1774031400,
+                "end_time": 1774053000
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3154
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "c761fdc2db7f747e3d77ce27a404be04"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-21T06:00:30",
+          "unix_timestamp": 1774053030,
+          "start_time": 1774053030,
+          "end_time": 1774099830,
+          "date": "2026-03-21",
+          "time": "06:00:30",
+          "generation_wh": 819.0,
+          "generation_kwh": 0.819,
+          "start_value": 349323.0,
+          "end_value": 350142.0,
+          "duration_seconds": 46800,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1774053030,
+            "end_time": 1774099830,
+            "start_value": "349323.000",
+            "end_value": "350142.000",
+            "value": "819.000",
+            "duration": 46800,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1774053000,
+                "end_time": 1774099800
+              },
+              "pred_mf": [],
+              "ssp": "NC",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 819,
+                    "actual": 819,
+                    "ncr_sum": 3154
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "1bc09a4a8ea779e0314ac8497b23f038"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-21T19:00:30",
+          "unix_timestamp": 1774099830,
+          "start_time": 1774099830,
+          "end_time": 1774117830,
+          "date": "2026-03-21",
+          "time": "19:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 350142.0,
+          "end_value": 350142.0,
+          "duration_seconds": 18000,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1774099830,
+            "end_time": 1774117830,
+            "start_value": "350142.000",
+            "end_value": "350142.000",
+            "value": "0.000",
+            "duration": 18000,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1774099800,
+                "end_time": 1774117800
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3154
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "93728910cebbefd3e5eee2cc2f226fda"
+              ]
+            },
+            "comm_pending": 1
+          }
+        }
+      ]
+    },
+    "2026-03-20": {
+      "date": "Friday, March 20, 2026",
+      "generation_kWh": 0.0,
+      "days_ago": 2,
+      "efficiency_percent": 0,
+      "total_readings": 3,
+      "all_readings": [
+        {
+          "timestamp": "2026-03-20T00:00:30",
+          "unix_timestamp": 1773945030,
+          "start_time": 1773945030,
+          "end_time": 1773966630,
+          "date": "2026-03-20",
+          "time": "00:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 349128.0,
+          "end_value": 349128.0,
+          "duration_seconds": 21600,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773945030,
+            "end_time": 1773966630,
+            "start_value": "349128.000",
+            "end_value": "349128.000",
+            "value": "0.000",
+            "duration": 21600,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773945000,
+                "end_time": 1773966600
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3461
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "e7591ec88e96c9ce92f39885bc40faf7"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-20T06:00:30",
+          "unix_timestamp": 1773966630,
+          "start_time": 1773966630,
+          "end_time": 1774013430,
+          "date": "2026-03-20",
+          "time": "06:00:30",
+          "generation_wh": 195.0,
+          "generation_kwh": 0.195,
+          "start_value": 349128.0,
+          "end_value": 349323.0,
+          "duration_seconds": 46800,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773966630,
+            "end_time": 1774013430,
+            "start_value": "349128.000",
+            "end_value": "349323.000",
+            "value": "195.000",
+            "duration": 46800,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773966600,
+                "end_time": 1774013400
+              },
+              "pred_mf": [],
+              "ssp": "NC",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 195,
+                    "actual": 195,
+                    "ncr_sum": 3461
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "8a8ecbd0cb4c504cbde8f9f226435cce"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-20T19:00:30",
+          "unix_timestamp": 1774013430,
+          "start_time": 1774013430,
+          "end_time": 1774031430,
+          "date": "2026-03-20",
+          "time": "19:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 349323.0,
+          "end_value": 349323.0,
+          "duration_seconds": 18000,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1774013430,
+            "end_time": 1774031430,
+            "start_value": "349323.000",
+            "end_value": "349323.000",
+            "value": "0.000",
+            "duration": 18000,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1774013400,
+                "end_time": 1774031400
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3461
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "0aa4adb36f2abd576c6f1ab9c2989b9f"
+              ]
+            },
+            "comm_pending": 1
+          }
+        }
+      ]
+    },
+    "2026-03-19": {
+      "date": "Thursday, March 19, 2026",
+      "generation_kWh": 0.0,
+      "days_ago": 3,
+      "efficiency_percent": 0,
+      "total_readings": 3,
+      "all_readings": [
+        {
+          "timestamp": "2026-03-19T00:00:30",
+          "unix_timestamp": 1773858630,
+          "start_time": 1773858630,
+          "end_time": 1773880230,
+          "date": "2026-03-19",
+          "time": "00:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 348968.0,
+          "end_value": 348968.0,
+          "duration_seconds": 21600,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773858630,
+            "end_time": 1773880230,
+            "start_value": "348968.000",
+            "end_value": "348968.000",
+            "value": "0.000",
+            "duration": 21600,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773858600,
+                "end_time": 1773880200
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3998
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "66d7cc6487c905cbc3601bbe9ae2f1ef"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-19T06:00:30",
+          "unix_timestamp": 1773880230,
+          "start_time": 1773880230,
+          "end_time": 1773927030,
+          "date": "2026-03-19",
+          "time": "06:00:30",
+          "generation_wh": 160.0,
+          "generation_kwh": 0.16,
+          "start_value": 348968.0,
+          "end_value": 349128.0,
+          "duration_seconds": 46800,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773880230,
+            "end_time": 1773927030,
+            "start_value": "348968.000",
+            "end_value": "349128.000",
+            "value": "160.000",
+            "duration": 46800,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773880200,
+                "end_time": 1773927000
+              },
+              "pred_mf": [],
+              "ssp": "NC",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 160,
+                    "actual": 160,
+                    "ncr_sum": 3998
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "ffd7681ca24bd5fac054ba03f5e2e06e"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-19T19:00:30",
+          "unix_timestamp": 1773927030,
+          "start_time": 1773927030,
+          "end_time": 1773945030,
+          "date": "2026-03-19",
+          "time": "19:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 349128.0,
+          "end_value": 349128.0,
+          "duration_seconds": 18000,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773927030,
+            "end_time": 1773945030,
+            "start_value": "349128.000",
+            "end_value": "349128.000",
+            "value": "0.000",
+            "duration": 18000,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773927000,
+                "end_time": 1773945000
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3998
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "9f2b8cf584f467af10d7ad4484cf50d1"
+              ]
+            },
+            "comm_pending": 1
+          }
+        }
+      ]
+    },
+    "2026-03-18": {
+      "date": "Wednesday, March 18, 2026",
+      "generation_kWh": 0.0,
+      "days_ago": 4,
+      "efficiency_percent": 0,
+      "total_readings": 3,
+      "all_readings": [
+        {
+          "timestamp": "2026-03-18T00:00:30",
+          "unix_timestamp": 1773772230,
+          "start_time": 1773772230,
+          "end_time": 1773793830,
+          "date": "2026-03-18",
+          "time": "00:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 348178.0,
+          "end_value": 348178.0,
+          "duration_seconds": 21600,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773772230,
+            "end_time": 1773793830,
+            "start_value": "348178.000",
+            "end_value": "348178.000",
+            "value": "0.000",
+            "duration": 21600,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773772200,
+                "end_time": 1773793800
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3828
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "6f51c531858f302b36dab2cb39f40fdd"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-18T06:00:30",
+          "unix_timestamp": 1773793830,
+          "start_time": 1773793830,
+          "end_time": 1773840630,
+          "date": "2026-03-18",
+          "time": "06:00:30",
+          "generation_wh": 790.0,
+          "generation_kwh": 0.79,
+          "start_value": 348178.0,
+          "end_value": 348968.0,
+          "duration_seconds": 46800,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773793830,
+            "end_time": 1773840630,
+            "start_value": "348178.000",
+            "end_value": "348968.000",
+            "value": "790.000",
+            "duration": 46800,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773793800,
+                "end_time": 1773840600
+              },
+              "pred_mf": [],
+              "ssp": "NC",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 790,
+                    "actual": 790,
+                    "ncr_sum": 3828
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "14ec2319d26c3edca339340b2f00e00c"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-18T19:00:30",
+          "unix_timestamp": 1773840630,
+          "start_time": 1773840630,
+          "end_time": 1773858630,
+          "date": "2026-03-18",
+          "time": "19:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 348968.0,
+          "end_value": 348968.0,
+          "duration_seconds": 18000,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773840630,
+            "end_time": 1773858630,
+            "start_value": "348968.000",
+            "end_value": "348968.000",
+            "value": "0.000",
+            "duration": 18000,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773840600,
+                "end_time": 1773858600
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3828
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "46054a38c25b939c5f265f072ab5d4d9"
+              ]
+            },
+            "comm_pending": 1
+          }
+        }
+      ]
+    },
+    "2026-03-17": {
+      "date": "Tuesday, March 17, 2026",
+      "generation_kWh": 0.0,
+      "days_ago": 5,
+      "efficiency_percent": 0,
+      "total_readings": 3,
+      "all_readings": [
+        {
+          "timestamp": "2026-03-17T00:00:30",
+          "unix_timestamp": 1773685830,
+          "start_time": 1773685830,
+          "end_time": 1773707430,
+          "date": "2026-03-17",
+          "time": "00:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 347407.0,
+          "end_value": 347407.0,
+          "duration_seconds": 21600,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773685830,
+            "end_time": 1773707430,
+            "start_value": "347407.000",
+            "end_value": "347407.000",
+            "value": "0.000",
+            "duration": 21600,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773685800,
+                "end_time": 1773707400
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3759
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "e5cb516f6280fb91e04fddbc72edd527"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-17T06:00:30",
+          "unix_timestamp": 1773707430,
+          "start_time": 1773707430,
+          "end_time": 1773754230,
+          "date": "2026-03-17",
+          "time": "06:00:30",
+          "generation_wh": 771.0,
+          "generation_kwh": 0.771,
+          "start_value": 347407.0,
+          "end_value": 348178.0,
+          "duration_seconds": 46800,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773707430,
+            "end_time": 1773754230,
+            "start_value": "347407.000",
+            "end_value": "348178.000",
+            "value": "771.000",
+            "duration": 46800,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773707400,
+                "end_time": 1773754200
+              },
+              "pred_mf": [],
+              "ssp": "NC",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 771,
+                    "actual": 771,
+                    "ncr_sum": 3759
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "40bdb577448d6e28428d6b3cc5c3bb40"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-17T19:00:30",
+          "unix_timestamp": 1773754230,
+          "start_time": 1773754230,
+          "end_time": 1773772230,
+          "date": "2026-03-17",
+          "time": "19:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 348178.0,
+          "end_value": 348178.0,
+          "duration_seconds": 18000,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773754230,
+            "end_time": 1773772230,
+            "start_value": "348178.000",
+            "end_value": "348178.000",
+            "value": "0.000",
+            "duration": 18000,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773754200,
+                "end_time": 1773772200
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3759
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "f14bac7d8138897db4aea6f877590c46"
+              ]
+            },
+            "comm_pending": 1
+          }
+        }
+      ]
+    },
+    "2026-03-16": {
+      "date": "Monday, March 16, 2026",
+      "generation_kWh": 0.0,
+      "days_ago": 6,
+      "efficiency_percent": 0,
+      "total_readings": 3,
+      "all_readings": [
+        {
+          "timestamp": "2026-03-16T00:00:30",
+          "unix_timestamp": 1773599430,
+          "start_time": 1773599430,
+          "end_time": 1773621030,
+          "date": "2026-03-16",
+          "time": "00:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 346416.0,
+          "end_value": 346416.0,
+          "duration_seconds": 21600,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773599430,
+            "end_time": 1773621030,
+            "start_value": "346416.000",
+            "end_value": "346416.000",
+            "value": "0.000",
+            "duration": 21600,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773599400,
+                "end_time": 1773621000
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3197
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "e4059d438143e5862f16cd2c41b53c6c"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-16T06:00:30",
+          "unix_timestamp": 1773621030,
+          "start_time": 1773621030,
+          "end_time": 1773667830,
+          "date": "2026-03-16",
+          "time": "06:00:30",
+          "generation_wh": 991.0,
+          "generation_kwh": 0.991,
+          "start_value": 346416.0,
+          "end_value": 347407.0,
+          "duration_seconds": 46800,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773621030,
+            "end_time": 1773667830,
+            "start_value": "346416.000",
+            "end_value": "347407.000",
+            "value": "991.000",
+            "duration": 46800,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773621000,
+                "end_time": 1773667800
+              },
+              "pred_mf": [],
+              "ssp": "NC",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 991,
+                    "actual": 991,
+                    "ncr_sum": 3197
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "a57f559c1203e721b42c8ec84215d4c1"
+              ]
+            },
+            "comm_pending": 1
+          }
+        },
+        {
+          "timestamp": "2026-03-16T19:00:30",
+          "unix_timestamp": 1773667830,
+          "start_time": 1773667830,
+          "end_time": 1773685830,
+          "date": "2026-03-16",
+          "time": "19:00:30",
+          "generation_wh": 0.0,
+          "generation_kwh": 0.0,
+          "start_value": 347407.0,
+          "end_value": 347407.0,
+          "duration_seconds": 18000,
+          "report_entry": {
+            "setting_id": "6e6a78506c7242766b5471324f724b2b4e4334557754376778545a4d775630554652302b753066494831553d",
+            "type": 0,
+            "start_time": 1773667830,
+            "end_time": 1773685830,
+            "start_value": "347407.000",
+            "end_value": "347407.000",
+            "value": "0.000",
+            "duration": 18000,
+            "json_data": {
+              "reason": [
+                "Zone Changed"
+              ],
+              "eval": {
+                "end": {
+                  "on": false,
+                  "off": false
+                },
+                "start": {
+                  "on": false,
+                  "off": false
+                }
+              },
+              "zone": {
+                "start_time": 1773667800,
+                "end_time": 1773685800
+              },
+              "pred_mf": [],
+              "ssp": "NG",
+              "active": 1,
+              "acc_duration": 0,
+              "generation": {
+                "536499": {
+                  "WHTot": {
+                    "accumulated": 0,
+                    "actual": 0,
+                    "ncr_sum": 3197
+                  }
+                }
+              },
+              "version": [
+                "V11",
+                "76d20c94d8194cbe0844fe88a4cf07f0"
+              ]
+            },
+            "comm_pending": 1
+          }
+        }
+      ]
+    }
+  },
+  "daily_performance_metrics": {
+    "efficiency_by_day": {},
+    "generation_trend": "Insufficient data"
+  },
+  "plant_info": {
+    "plant_name": "MAQ_SOFTWARE_598.6KWp",
+    "plant_id": "5857492f6e3839697a6a423961457271484e497253356478434c43343258374c366f5947546c54555653493d",
+    "device_model": "Mega",
+    "device_sw_version": "2.3.16",
+    "device_hw_version": "1.3.53",
+    "dc_capacity_kwp": 598.6,
+    "ac_capacity_kw": 500.0,
+    "theoretical_max_daily_kwh": 2500.0,
+    "number_of_inverters": 5,
+    "installation_date": "2025-04-02",
+    "latitude": "28.57707050",
+    "longitude": "77.34180310",
+    "timezone": "Asia/Kolkata",
+    "co2_mitigation_factor": 0.825
+  }
+}

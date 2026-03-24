@@ -100,21 +100,59 @@ export const SolarTab = () => {
   }
 
   const smbs = ["SMB1", "SMB2", "SMB3", "SMB4", "SMB5"];
-  const inverterStatuses =
-    solarData?.data?.reduce((acc, item) => {
-      smbs.forEach((smb, idx) => {
-        if (!acc[idx]) acc[idx] = { name: smb, status: "All Online" };
-        if (
-          item["Inverter Status"] &&
-          item["Inverter Status"] !== "All Online"
-        ) {
-          acc[idx].status = item["Inverter Status"];
+  const inverterStatuses = (() => {
+    const records = solarData?.data || [];
+    const defaultStatuses = smbs.reduce((acc, smb) => {
+      acc[smb] = { name: smb, status: "All Online" };
+      return acc;
+    }, {});
+
+    if (!records.length) return defaultStatuses;
+
+    const sorted = [...records].sort((a, b) => {
+      const aKey = `${a.Date || ""} ${a.Time || ""}`;
+      const bKey = `${b.Date || ""} ${b.Time || ""}`;
+      return bKey.localeCompare(aKey);
+    });
+
+    const latestWithStatus = sorted.find(
+      (item) =>
+        item["Inverter Status"] && String(item["Inverter Status"]).trim(),
+    );
+    if (!latestWithStatus) return defaultStatuses;
+
+    const rawStatus = String(latestWithStatus["Inverter Status"]).trim();
+    const normalized = rawStatus.toLowerCase();
+
+    if (normalized === "all online") {
+      return defaultStatuses;
+    }
+
+    const statuses = smbs.reduce((acc, smb) => {
+      acc[smb] = { name: smb, status: "All Online" };
+      return acc;
+    }, {});
+
+    if (normalized.includes("fault")) {
+      let matchedAny = false;
+      smbs.forEach((smb) => {
+        if (normalized.includes(smb.toLowerCase())) {
+          statuses[smb].status = `${smb} Fault`;
+          matchedAny = true;
         }
       });
-      return acc;
-    }, {}) || {};
 
-  const chartData =
+      if (!matchedAny) {
+        smbs.forEach((smb) => {
+          statuses[smb].status = "Fault";
+        });
+      }
+    }
+
+    return statuses;
+  })();
+
+  const smbChartData =
     solarData?.data?.map((item) => ({
       Date: item.Date,
       "Solar Generated": parseFloat(item["Solar Units Generated (KWh)"]) || 0,
@@ -123,6 +161,14 @@ export const SolarTab = () => {
       SMB3: parseFloat(item["SMB3 (KWh)"]) || 0,
       SMB4: parseFloat(item["SMB4 (KWh)"]) || 0,
       SMB5: parseFloat(item["SMB5 (KWh)"]) || 0,
+    })) || [];
+
+  const weeklyTrendData =
+    kpiData?.weekly_trend?.map((item) => ({
+      Date: item?.Day
+        ? `${item.Day.slice(0, 3)} (${item.Date.slice(5)})`
+        : item.Date,
+      "Solar Generated": parseFloat(item?.Generation) || 0,
     })) || [];
 
   return (
@@ -187,13 +233,13 @@ export const SolarTab = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AreaChartComponent
-          data={chartData}
-          title="Solar Generation Trend"
+          data={weeklyTrendData}
+          title="Solar Generation Trend (Last 7 Days)"
           dataKeys={["Solar Generated"]}
           colors={["#d39b22"]}
         />
         <StackedBarChart
-          data={chartData}
+          data={smbChartData}
           title="SMB Contribution"
           dataKeys={["SMB1", "SMB2", "SMB3", "SMB4", "SMB5"]}
           colors={["#1f5ea8", "#c57c22", "#1b7f5b", "#b54747", "#5a6b7f"]}
@@ -211,7 +257,10 @@ export const SolarTab = () => {
             label="Export Excel"
           />
         </div>
-        <DataTable data={solarData?.data || []} hideColumns={[]} />
+        <DataTable
+          data={solarData?.data || []}
+          hideColumns={["Irradiance (W/m²)"]}
+        />
       </div>
     </div>
   );

@@ -48,18 +48,11 @@
               </td>
             </tr>
 
-            {% if custom_message %}
-            <!-- Custom Message -->
+            {% if include.get('executive_summary', True) %}
+            <!-- Executive Summary -->
             <tr>
-              <td
-                style="
-                  padding: 16px 24px;
-                  background-color: #fff8e1;
-                  border-bottom: 1px solid #eee;
-                  font-size: 13px;
-                "
-              >
-                {{ custom_message }}
+              <td style="padding: 14px 24px 8px 24px">
+                {{ executive_summary_html }}
               </td>
             </tr>
             {% endif %} {% if include.get('summary_kpis', True) %}
@@ -255,25 +248,6 @@
                 </table>
               </td>
             </tr>
-            {% endif %} {% if include.get('unified_table', True) %}
-            <!-- ECS-Format Data Table -->
-            <tr>
-              <td style="padding: 8px 24px 4px 24px">
-                <div
-                  style="
-                    font-size: 14px;
-                    font-weight: bold;
-                    color: #1f3864;
-                    margin-bottom: 8px;
-                  "
-                >
-                  ELECTRICAL CONSUMPTION SUMMARY
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 0 24px 20px 24px">{{ ecs_table_html }}</td>
-            </tr>
             {% endif %} {% if include.get('inverter_status', True) %}
             <!-- Inverter Status -->
             <tr>
@@ -293,6 +267,40 @@
             <tr>
               <td style="padding: 0 24px 20px 24px">
                 {{ inverter_table_html }}
+              </td>
+            </tr>
+            {% endif %} {% if include.get('unified_table', True) %}
+            <!-- Daily Report -->
+            <tr>
+              <td style="padding: 8px 24px 4px 24px">
+                <div
+                  style="
+                    font-size: 14px;
+                    font-weight: bold;
+                    color: #1f3864;
+                    margin-bottom: 8px;
+                  "
+                >
+                  DAILY REPORT
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 0 24px 20px 24px">{{ ecs_table_html }}</td>
+            </tr>
+            {% endif %} {% if custom_message %}
+            <!-- Custom Message -->
+            <tr>
+              <td
+                style="
+                  padding: 16px 24px;
+                  background-color: #fff8e1;
+                  border-top: 1px solid #eee;
+                  border-bottom: 1px solid #eee;
+                  font-size: 13px;
+                "
+              >
+                {{ custom_message }}
               </td>
             </tr>
             {% endif %}

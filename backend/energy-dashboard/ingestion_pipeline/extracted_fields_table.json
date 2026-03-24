@@ -1,0 +1,103 @@
+{
+  "table_info": {
+    "created_at": "2026-03-23T12:38:38.092965",
+    "source_files": [
+      "captured_api_data.json",
+      "filtered_30day_data.json",
+      "filtered_7day_values.json",
+      "filtered_solar_panel_data.json"
+    ],
+    "row_count": 7,
+    "columns": [
+      "Date",
+      "Day",
+      "Time",
+      "Start Value",
+      "End Value",
+      "Generation Interval (Wh)",
+      "Generation Interval (kWh)",
+      "Daily Generation Solar (kWh)"
+    ]
+  },
+  "summary": {
+    "today_generation_kWh": 0.01,
+    "yesterday_generation_kWh": 0.82,
+    "weekly_generation_kWh": 4.53,
+    "monthly_generation_kWh": 13.58,
+    "yearly_generation_kWh": 360.88,
+    "total_cumulative_generation_kWh": 350.99,
+    "capacity_utilization_factor_percent": 0.0
+  },
+  "table": [
+    {
+      "Date": "2026-03-16",
+      "Day": "Monday",
+      "Time": "06:00:30",
+      "Start Value": 346416.0,
+      "End Value": 347407.0,
+      "Generation Interval (Wh)": 991.0,
+      "Generation Interval (kWh)": 0.991,
+      "Daily Generation Solar (kWh)": 0.99
+    },
+    {
+      "Date": "2026-03-17",
+      "Day": "Tuesday",
+      "Time": "06:00:30",
+      "Start Value": 347407.0,
+      "End Value": 348178.0,
+      "Generation Interval (Wh)": 771.0,
+      "Generation Interval (kWh)": 0.771,
+      "Daily Generation Solar (kWh)": 0.77
+    },
+    {
+      "Date": "2026-03-18",
+      "Day": "Wednesday",
+      "Time": "06:00:30",
+      "Start Value": 348178.0,
+      "End Value": 348968.0,
+      "Generation Interval (Wh)": 790.0,
+      "Generation Interval (kWh)": 0.79,
+      "Daily Generation Solar (kWh)": 0.79
+    },
+    {
+      "Date": "2026-03-19",
+      "Day": "Thursday",
+      "Time": "06:00:30",
+      "Start Value": 348968.0,
+      "End Value": 349128.0,
+      "Generation Interval (Wh)": 160.0,
+      "Generation Interval (kWh)": 0.16,
+      "Daily Generation Solar (kWh)": 0.16
+    },
+    {
+      "Date": "2026-03-20",
+      "Day": "Friday",
+      "Time": "06:00:30",
+      "Start Value": 349128.0,
+      "End Value": 349323.0,
+      "Generation Interval (Wh)": 195.0,
+      "Generation Interval (kWh)": 0.195,
+      "Daily Generation Solar (kWh)": 0.2
+    },
+    {
+      "Date": "2026-03-21",
+      "Day": "Saturday",
+      "Time": "06:00:30",
+      "Start Value": 349323.0,
+      "End Value": 350142.0,
+      "Generation Interval (Wh)": 819.0,
+      "Generation Interval (kWh)": 0.819,
+      "Daily Generation Solar (kWh)": 0.82
+    },
+    {
+      "Date": "2026-03-22",
+      "Day": "Sunday",
+      "Time": "06:00:30",
+      "Start Value": 350142.0,
+      "End Value": 350944.0,
+      "Generation Interval (Wh)": 802.0,
+      "Generation Interval (kWh)": 0.802,
+      "Daily Generation Solar (kWh)": 0.8
+    }
+  ]
+}

@@ -5,27 +5,28 @@ import sys
 from pathlib import Path
 from typing import Optional
 from io import BytesIO
+import pandas as pd
 
 # Add the energy-dashboard directory to the path
 energy_dashboard_path = Path(__file__).parent.parent.parent / "energy-dashboard"
 sys.path.insert(0, str(energy_dashboard_path))
 
 from data_ingestion_agent import loader, processor, exporter
+from config import config
 
 
 def export_unified_excel(start_date: Optional[str] = None, end_date: Optional[str] = None) -> BytesIO:
     """Export unified data to Excel"""
     # Load all data
-    grid_df = loader.load_grid_data()
-    solar_df = loader.load_solar_data()
-    diesel_df = loader.load_diesel_data()
+    grid_df = loader.load_grid_data(config)
+    solar_df = loader.load_solar_data(config)
+    diesel_df = loader.load_diesel_data(config)
 
     # Build unified dataframe
     unified_df = processor.build_unified_dataframe(grid_df, solar_df, diesel_df)
 
     # Filter by date if provided
     if start_date or end_date:
-        import pandas as pd
         unified_df['Date'] = pd.to_datetime(unified_df['Date'])
         if start_date:
             unified_df = unified_df[unified_df['Date'] >= pd.to_datetime(start_date)]
@@ -43,8 +44,7 @@ def export_unified_excel(start_date: Optional[str] = None, end_date: Optional[st
 
 def export_grid_excel(start_date: Optional[str] = None, end_date: Optional[str] = None) -> BytesIO:
     """Export grid data to Excel"""
-    import pandas as pd
-    grid_df = loader.load_grid_data()
+    grid_df = loader.load_grid_data(config)
 
     # Filter by date if provided
     if start_date or end_date:
@@ -64,8 +64,7 @@ def export_grid_excel(start_date: Optional[str] = None, end_date: Optional[str] 
 
 def export_solar_excel(start_date: Optional[str] = None, end_date: Optional[str] = None) -> BytesIO:
     """Export solar data to Excel"""
-    import pandas as pd
-    solar_df = loader.load_solar_data()
+    solar_df = loader.load_solar_data(config)
 
     # Filter by date if provided
     if start_date or end_date:
@@ -85,8 +84,7 @@ def export_solar_excel(start_date: Optional[str] = None, end_date: Optional[str]
 
 def export_diesel_excel(start_date: Optional[str] = None, end_date: Optional[str] = None) -> BytesIO:
     """Export diesel data to Excel"""
-    import pandas as pd
-    diesel_df = loader.load_diesel_data()
+    diesel_df = loader.load_diesel_data(config)
 
     # Filter by date if provided
     if start_date or end_date:
@@ -106,12 +104,12 @@ def export_diesel_excel(start_date: Optional[str] = None, end_date: Optional[str
 
 def export_ecs_excel() -> BytesIO:
     """Export in ECS format"""
-    # Use the existing ECS export function
-    output_path = exporter.export_ecs_style_xlsx()
+    grid_df = loader.load_grid_data(config)
+    solar_df = loader.load_solar_data(config)
+    diesel_df = loader.load_diesel_data(config)
+    unified_df = processor.build_unified_dataframe(grid_df, solar_df, diesel_df)
 
-    # Read the file and return as BytesIO
-    with open(output_path, 'rb') as f:
-        output = BytesIO(f.read())
-
+    ecs_bytes = exporter.export_ecs_style_xlsx(unified_df)
+    output = BytesIO(ecs_bytes)
     output.seek(0)
     return output

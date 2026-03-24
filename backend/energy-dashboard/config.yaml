@@ -1,8 +1,8 @@
 data:
-  grid_file: ./data/grid_data.csv
-  grid_file_fallback: ./data/grid_data_fallback.csv
-  solar_file: ./data/solar_data.csv
-  diesel_file: ./data/diesel_data.csv
+  grid_file: https://docs.google.com/spreadsheets/d/15B_YvZIM_ia_ZhtxwP9YB9hMZpKmwrut7JCBYSVIT-8/edit?usp=sharing
+  solar_file: https://docs.google.com/spreadsheets/d/1ST7frQgyKgsvoyZI4y5tYqrJ5Ffi8p-XUgpkplAGM-Y/edit?usp=sharing
+  solar_smb_status_file: https://docs.google.com/spreadsheets/d/1h4zRMTtiV0TUgnRyiIuWKrWeFnHtZQjhyh4vJtXSeG4/edit?usp=sharing
+  solar_last7_file: https://docs.google.com/spreadsheets/d/1C7ugryQ-ZdT4p_DwmkUt1XOa14rPthAZIXLlkB2TDmQ/edit?usp=sharing
 
 costs:
   grid_per_unit_inr: 7.11

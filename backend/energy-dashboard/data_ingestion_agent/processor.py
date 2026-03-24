@@ -8,7 +8,7 @@ import pandas as pd
 
 def build_unified_dataframe(grid: pd.DataFrame, solar: pd.DataFrame, diesel: pd.DataFrame) -> pd.DataFrame:
     """
-    Merge grid, solar and diesel data on Date + Day + Time into a single
+    Merge grid, solar and diesel data on Date + Time into a single
     master DataFrame with all derived columns.
     """
     # ── Grid: rename to unified names ──
@@ -20,28 +20,47 @@ def build_unified_dataframe(grid: pd.DataFrame, solar: pd.DataFrame, diesel: pd.
         "Total Units Consumed in INR": "Grid Cost (INR)",
         "Energy Saving in INR": "Grid Energy Saving (INR)",
     }, inplace=True)
+    # Diesel is sourced through the diesel dataframe; avoid duplicate raw sheet columns.
+    g.drop(columns=["diesel_consumed", "Diesel consumed"], errors="ignore", inplace=True)
 
     # ── Solar: rename ──
     s = solar[["Date", "Day", "Time", "Solar Units Generated (KWh)",
                "Inverter Status", "SMB1 (KWh)", "SMB2 (KWh)",
                "SMB3 (KWh)", "SMB4 (KWh)", "SMB5 (KWh)",
                "Irradiance (W/m²)"]].copy()
+    s.rename(columns={"Day": "Solar Day"}, inplace=True)
     s.rename(columns={
         "Solar Units Generated (KWh)": "Solar KWh",
     }, inplace=True)
 
-    # ── Diesel: rename ──
-    d = diesel[["Date", "Day", "Time", "DG Units Consumed (KWh)",
-                "DG Runtime (hrs)", "Fuel Consumed (Litres)",
-                "Total Cost (INR)", "DG ID"]].copy()
+    # ── Diesel: normalize/rename ──
+    d = diesel.copy()
+    if "Fuel Consumed (Litres)" in d.columns and "Diesel consumed" not in d.columns:
+        d.rename(columns={"Fuel Consumed (Litres)": "Diesel consumed"}, inplace=True)
+    if "Diesel consumed" not in d.columns:
+        d["Diesel consumed"] = 0.0
+
+    d = d[["Date", "Day", "Time", "DG Units Consumed (KWh)",
+           "DG Runtime (hrs)", "Diesel consumed",
+           "Total Cost (INR)", "DG ID"]].copy()
     d.rename(columns={
+        "Day": "Diesel Day",
         "DG Units Consumed (KWh)": "Diesel KWh",
         "Total Cost (INR)": "Diesel Cost (INR)",
     }, inplace=True)
 
-    # ── Merge on composite key ──
-    merged = g.merge(s, on=["Date", "Day", "Time"], how="outer")
-    merged = merged.merge(d, on=["Date", "Day", "Time"], how="outer")
+    # ── Merge on Date + Time key ──
+    merged = g.merge(s, on=["Date", "Time"], how="outer")
+    merged = merged.merge(d, on=["Date", "Time"], how="outer")
+
+    # Resolve day label from available sources.
+    if "Day" not in merged.columns:
+        merged["Day"] = None
+    if "Solar Day" in merged.columns:
+        merged["Day"] = merged["Day"].fillna(merged["Solar Day"])
+    if "Diesel Day" in merged.columns:
+        merged["Day"] = merged["Day"].fillna(merged["Diesel Day"])
+    merged.drop(columns=["Solar Day", "Diesel Day"], errors="ignore", inplace=True)
 
     # Fill NaN numerics with 0
     num_fill = ["Grid KWh", "Solar KWh", "Diesel KWh",
@@ -53,9 +72,11 @@ def build_unified_dataframe(grid: pd.DataFrame, solar: pd.DataFrame, diesel: pd.
 
     # ── Derived columns ──
     merged["Total KWh"] = merged["Grid KWh"] + merged["Solar KWh"] + merged["Diesel KWh"]
-    merged["Solar Cost (INR)"] = 0.0
-    merged["Total Cost (INR)"] = merged["Grid Cost (INR)"] + merged["Diesel Cost (INR)"]
-    merged["Energy Saving (INR)"] = merged["Solar KWh"] * 7.11  # grid rate per unit
+    grid_rate = 7.11
+    solar_rate = 1.50
+    merged["Solar Cost (INR)"] = merged["Solar KWh"] * solar_rate
+    merged["Total Cost (INR)"] = merged["Grid Cost (INR)"] + merged["Diesel Cost (INR)"] + merged["Solar Cost (INR)"]
+    merged["Energy Saving (INR)"] = merged["Solar KWh"] * (grid_rate - solar_rate)
     merged["Solar %"] = ((merged["Solar KWh"] / merged["Total KWh"]) * 100).round(1).fillna(0)
 
     # Source label

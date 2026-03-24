@@ -1,7 +1,7 @@
 """
 Scheduler endpoints router
 """
-from fastapi import APIRouter, UploadFile, File, Query
+from fastapi import APIRouter, UploadFile, File, Query, Body
 from typing import Optional
 from services import scheduler_service
 from schemas.scheduler import SchedulerConfig, SchedulerStatus, SendNowRequest
@@ -29,9 +29,18 @@ async def get_scheduler_status():
 
 
 @router.post("/start")
-async def start_scheduler(send_time: str = Query("10:00", description="Send time in HH:MM format")):
+async def start_scheduler(
+    payload: Optional[dict] = Body(default=None),
+    send_time: Optional[str] = Query(default=None, description="Send time in HH:MM format"),
+):
     """Start background scheduler"""
-    return scheduler_service.start_scheduler(send_time)
+    selected_time = send_time
+    if payload and isinstance(payload, dict):
+        selected_time = payload.get("send_time", selected_time)
+    if not selected_time:
+        selected_time = "10:00"
+
+    return scheduler_service.start_scheduler(selected_time)
 
 
 @router.post("/stop")

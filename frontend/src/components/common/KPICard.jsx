@@ -34,39 +34,44 @@ export const KPICard = ({
   };
 
   const isDeltaPositive = delta !== null && delta >= 0;
+  const formattedValue =
+    typeof value === "number"
+      ? value.toLocaleString("en-IN", {
+          maximumFractionDigits: 1,
+        })
+      : value || "—";
 
   return (
     <div
-      className={`bg-gradient-to-br ${colorClasses[color] || colorClasses.blue} border rounded-2xl p-6 shadow-md transition-all hover:shadow-lg`}
+      className={`bg-gradient-to-br ${colorClasses[color] || colorClasses.blue} border rounded-2xl p-6 shadow-md transition-all hover:shadow-lg h-full overflow-hidden`}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-[var(--text-muted)] text-sm font-medium uppercase tracking-wide">
-            {title}
-          </p>
-          <div className="mt-3 flex items-baseline gap-2">
-            <p
-              className={`text-3xl md:text-4xl font-bold ${textColorClasses[color] || textColorClasses.blue}`}
-            >
-              {typeof value === "number"
-                ? value.toLocaleString("en-IN", {
-                    maximumFractionDigits: 1,
-                  })
-                : value || "—"}
-            </p>
-            {unit && (
-              <p className="text-[var(--text-muted)] text-sm font-medium">
-                {unit}
-              </p>
-            )}
-          </div>
-        </div>
-        {Icon && (
-          <div
-            className={`${iconBgClasses[color] || iconBgClasses.blue} p-3 rounded-xl`}
-          >
+      <div className="flex items-start justify-between gap-3 min-h-[56px]">
+        <p className="text-[var(--text-muted)] text-sm font-medium uppercase tracking-wide leading-6">
+          {title}
+        </p>
+
+        <div
+          className={`${iconBgClasses[color] || iconBgClasses.blue} p-3 rounded-xl shrink-0 ${Icon ? "opacity-100" : "opacity-0"}`}
+          aria-hidden={!Icon}
+        >
+          {Icon ? (
             <Icon size={28} strokeWidth={1.5} />
-          </div>
+          ) : (
+            <span className="block w-7 h-7" />
+          )}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-end gap-2 min-h-[64px]">
+        <p
+          className={`text-[clamp(2rem,2.8vw,3.1rem)] leading-none tracking-tight font-bold break-words ${textColorClasses[color] || textColorClasses.blue}`}
+        >
+          {formattedValue}
+        </p>
+        {unit && (
+          <p className="text-[var(--text-muted)] text-sm font-medium whitespace-nowrap pb-1">
+            {unit}
+          </p>
         )}
       </div>
 

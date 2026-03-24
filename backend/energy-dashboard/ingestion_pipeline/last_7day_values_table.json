@@ -1,0 +1,67 @@
+{
+  "table": [
+    {
+      "Date": "2026-03-16",
+      "Date Formatted": "Monday, March 16, 2026",
+      "Time": "06:00:30",
+      "Start Value": 346416.0,
+      "End Value": 347407.0,
+      "Generation (Wh)": 991.0,
+      "Generation (kWh)": 0.991
+    },
+    {
+      "Date": "2026-03-17",
+      "Date Formatted": "Tuesday, March 17, 2026",
+      "Time": "06:00:30",
+      "Start Value": 347407.0,
+      "End Value": 348178.0,
+      "Generation (Wh)": 771.0,
+      "Generation (kWh)": 0.771
+    },
+    {
+      "Date": "2026-03-18",
+      "Date Formatted": "Wednesday, March 18, 2026",
+      "Time": "06:00:30",
+      "Start Value": 348178.0,
+      "End Value": 348968.0,
+      "Generation (Wh)": 790.0,
+      "Generation (kWh)": 0.79
+    },
+    {
+      "Date": "2026-03-19",
+      "Date Formatted": "Thursday, March 19, 2026",
+      "Time": "06:00:30",
+      "Start Value": 348968.0,
+      "End Value": 349128.0,
+      "Generation (Wh)": 160.0,
+      "Generation (kWh)": 0.16
+    },
+    {
+      "Date": "2026-03-20",
+      "Date Formatted": "Friday, March 20, 2026",
+      "Time": "06:00:30",
+      "Start Value": 349128.0,
+      "End Value": 349323.0,
+      "Generation (Wh)": 195.0,
+      "Generation (kWh)": 0.195
+    },
+    {
+      "Date": "2026-03-21",
+      "Date Formatted": "Saturday, March 21, 2026",
+      "Time": "06:00:30",
+      "Start Value": 349323.0,
+      "End Value": 350142.0,
+      "Generation (Wh)": 819.0,
+      "Generation (kWh)": 0.819
+    },
+    {
+      "Date": "2026-03-22",
+      "Date Formatted": "Sunday, March 22, 2026",
+      "Time": "06:00:30",
+      "Start Value": 350142.0,
+      "End Value": 350944.0,
+      "Generation (Wh)": 802.0,
+      "Generation (kWh)": 0.802
+    }
+  ]
+}

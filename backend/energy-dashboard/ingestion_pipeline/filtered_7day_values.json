@@ -1,0 +1,108 @@
+{
+  "extraction_info": {
+    "source": "filtered_30day_data.json",
+    "period": "Last 7 Days",
+    "timestamp_filter": "06:00:30",
+    "last_update": "2026-03-23T12:34:36.920333",
+    "extraction_date": "2026-03-23",
+    "fields_included": [
+      "date",
+      "start_value",
+      "end_value",
+      "value"
+    ]
+  },
+  "daily_values": {
+    "2026-03-22": {
+      "date_formatted": "Sunday, March 22, 2026",
+      "records_count": 1,
+      "records": [
+        {
+          "date": "2026-03-22",
+          "start_value": 350142.0,
+          "end_value": 350944.0,
+          "value": 802.0,
+          "time": "06:00:30"
+        }
+      ]
+    },
+    "2026-03-21": {
+      "date_formatted": "Saturday, March 21, 2026",
+      "records_count": 1,
+      "records": [
+        {
+          "date": "2026-03-21",
+          "start_value": 349323.0,
+          "end_value": 350142.0,
+          "value": 819.0,
+          "time": "06:00:30"
+        }
+      ]
+    },
+    "2026-03-20": {
+      "date_formatted": "Friday, March 20, 2026",
+      "records_count": 1,
+      "records": [
+        {
+          "date": "2026-03-20",
+          "start_value": 349128.0,
+          "end_value": 349323.0,
+          "value": 195.0,
+          "time": "06:00:30"
+        }
+      ]
+    },
+    "2026-03-19": {
+      "date_formatted": "Thursday, March 19, 2026",
+      "records_count": 1,
+      "records": [
+        {
+          "date": "2026-03-19",
+          "start_value": 348968.0,
+          "end_value": 349128.0,
+          "value": 160.0,
+          "time": "06:00:30"
+        }
+      ]
+    },
+    "2026-03-18": {
+      "date_formatted": "Wednesday, March 18, 2026",
+      "records_count": 1,
+      "records": [
+        {
+          "date": "2026-03-18",
+          "start_value": 348178.0,
+          "end_value": 348968.0,
+          "value": 790.0,
+          "time": "06:00:30"
+        }
+      ]
+    },
+    "2026-03-17": {
+      "date_formatted": "Tuesday, March 17, 2026",
+      "records_count": 1,
+      "records": [
+        {
+          "date": "2026-03-17",
+          "start_value": 347407.0,
+          "end_value": 348178.0,
+          "value": 771.0,
+          "time": "06:00:30"
+        }
+      ]
+    },
+    "2026-03-16": {
+      "date_formatted": "Monday, March 16, 2026",
+      "records_count": 1,
+      "records": [
+        {
+          "date": "2026-03-16",
+          "start_value": 346416.0,
+          "end_value": 347407.0,
+          "value": 991.0,
+          "time": "06:00:30"
+        }
+      ]
+    }
+  }
+}

@@ -7,17 +7,7 @@ import { GridTab } from "./components/tabs/GridTab";
 import { SolarTab } from "./components/tabs/SolarTab";
 import { DieselTab } from "./components/tabs/DieselTab";
 import { SchedulerTab } from "./components/tabs/SchedulerTab";
-import {
-  Zap,
-  Grid2X2,
-  Sun,
-  Fuel,
-  Clock,
-  Moon,
-  SunMedium,
-  ShieldCheck,
-  Activity,
-} from "lucide-react";
+import { Zap, Grid2X2, Sun, Fuel, Clock, Moon, SunMedium } from "lucide-react";
 
 const TAB_ITEMS = [
   { id: "overview", label: "Overview", icon: Grid2X2 },
@@ -38,7 +28,7 @@ function App() {
   return (
     <div className="app-shell min-h-screen">
       {/* Header */}
-      <header className="app-header sticky top-0 z-50">
+      <header className="app-header fixed inset-x-0 top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -52,14 +42,6 @@ function App() {
                 <p className="app-subtitle text-sm mt-1">
                   Real-time Energy Monitoring and Analytics
                 </p>
-                <div className="mt-3 flex items-center gap-2 flex-wrap">
-                  <span className="header-pill">
-                    <ShieldCheck size={14} /> Business Grade UI
-                  </span>
-                  <span className="header-pill">
-                    <Activity size={14} /> Live KPI Sync
-                  </span>
-                </div>
               </div>
             </div>
             <button
@@ -76,7 +58,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 pt-40 pb-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 fade-in-up">
           <div className="surface-card rounded-2xl p-4">
             <p className="text-xs uppercase tracking-wide text-[var(--text-muted)]">

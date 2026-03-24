@@ -4,13 +4,19 @@ Scheduler service (simplified for MVP)
 import json
 import sys
 import os
+import importlib.util
 from pathlib import Path
 from typing import Dict, Any, Optional
 from datetime import datetime
+import pandas as pd
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from zoneinfo import ZoneInfo
 
 SCHEDULER_CONFIG_FILE = Path(__file__).parent.parent.parent / "energy-dashboard" / "scheduler_config.json"
-SCHEDULER_LOG_FILE = Path(__file__).parent.parent.parent / "energy-dashboard" / "scheduler_log.json"
+SCHEDULER_LOG_FILE = Path(__file__).parent.parent.parent / "energy-dashboard" / "output" / "scheduler_log.json"
+SCHEDULER_JOB_ID = "daily_energy_report"
 
 # Load email environment variables
 energy_dashboard_path = Path(__file__).parent.parent.parent / "energy-dashboard"
@@ -27,6 +33,83 @@ _debug_log_path = energy_dashboard_path / "output" / "scheduler_module_debug.txt
 _debug_log_path.parent.mkdir(parents=True, exist_ok=True)
 with open(_debug_log_path, 'a', encoding='utf-8') as f:
     f.write(f"Module loaded at {_module_load_time}\n")
+
+_build_email_html_cached = None
+_build_email_html_cached_mtime = None
+_scheduler = BackgroundScheduler(timezone=ZoneInfo("Asia/Kolkata"))
+
+
+def _get_build_email_html():
+    """Load build_email_html directly from emailer.py to avoid package side effects."""
+    global _build_email_html_cached, _build_email_html_cached_mtime
+
+    emailer_path = energy_dashboard_path / "mail_scheduling_agent" / "emailer.py"
+    current_mtime = emailer_path.stat().st_mtime if emailer_path.exists() else None
+
+    # Reload when file changes so scheduler picks new email format without restart.
+    if (
+        _build_email_html_cached is not None
+        and _build_email_html_cached_mtime is not None
+        and current_mtime == _build_email_html_cached_mtime
+    ):
+        return _build_email_html_cached
+
+    spec = importlib.util.spec_from_file_location("energy_dashboard_emailer", emailer_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Unable to load emailer module from {emailer_path}")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _build_email_html_cached = module.build_email_html
+    _build_email_html_cached_mtime = current_mtime
+    return _build_email_html_cached
+
+
+def _validate_send_time(send_time: str) -> tuple[int, int]:
+    """Validate HH:MM time and return (hour, minute)."""
+    if not isinstance(send_time, str) or ":" not in send_time:
+        raise ValueError("send_time must be in HH:MM format")
+    hour_str, minute_str = send_time.split(":", 1)
+    if not hour_str.isdigit() or not minute_str.isdigit():
+        raise ValueError("send_time must be in HH:MM format")
+
+    hour = int(hour_str)
+    minute = int(minute_str)
+    if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+        raise ValueError("send_time must be in HH:MM format")
+    return hour, minute
+
+
+def _ensure_scheduler_started() -> None:
+    if not _scheduler.running:
+        _scheduler.start()
+
+
+def _schedule_daily_job(send_time: str) -> None:
+    hour, minute = _validate_send_time(send_time)
+    _ensure_scheduler_started()
+
+    trigger = CronTrigger(hour=hour, minute=minute, timezone=ZoneInfo("Asia/Kolkata"))
+    _scheduler.add_job(
+        send_email_now,
+        trigger=trigger,
+        id=SCHEDULER_JOB_ID,
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=1800,
+    )
+
+
+def initialize_scheduler_from_config() -> None:
+    """Initialize scheduler from persisted config when API starts."""
+    cfg = load_scheduler_config()
+    if cfg.get("auto_start", False):
+        try:
+            _schedule_daily_job(cfg.get("send_time", "10:00"))
+        except Exception as exc:
+            with open(_debug_log_path, 'a', encoding='utf-8') as f:
+                f.write(f"Scheduler auto-start failed: {exc}\n")
 
 
 def load_scheduler_config() -> Dict[str, Any]:
@@ -60,32 +143,54 @@ def save_scheduler_config(config: Dict[str, Any]) -> Dict[str, Any]:
     """Save scheduler configuration"""
     with open(SCHEDULER_CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=2)
+
+    # If scheduler is already active, immediately apply updated send_time.
+    if _scheduler.get_job(SCHEDULER_JOB_ID) is not None:
+        _schedule_daily_job(config.get("send_time", "10:00"))
+
+    # Respect auto_start preference for future startup and current runtime.
+    if config.get("auto_start", False) and _scheduler.get_job(SCHEDULER_JOB_ID) is None:
+        _schedule_daily_job(config.get("send_time", "10:00"))
+    if not config.get("auto_start", False) and _scheduler.get_job(SCHEDULER_JOB_ID) is not None:
+        _scheduler.remove_job(SCHEDULER_JOB_ID)
+
     return config
 
 
 def get_scheduler_status() -> Dict[str, Any]:
     """Get scheduler status"""
-    # For MVP, return a mock status
-    # In production, this would check APScheduler status
+    job = _scheduler.get_job(SCHEDULER_JOB_ID)
+    next_run_time = job.next_run_time if job else None
+    history = load_scheduler_history(limit=1)
     return {
-        "status": "stopped",
-        "next_run": None,
-        "last_run": None
+        "status": "running" if job else "stopped",
+        "next_run": next_run_time.isoformat() if next_run_time else None,
+        "last_run": history[0] if history else None,
     }
 
 
 def start_scheduler(send_time: str) -> Dict[str, Any]:
     """Start the scheduler"""
-    # For MVP, just return success
-    # In production, this would start APScheduler
+    _schedule_daily_job(send_time)
+
+    # Persist chosen time so UI refresh reflects latest schedule.
+    config = load_scheduler_config()
+    config["send_time"] = send_time
+    with open(SCHEDULER_CONFIG_FILE, 'w') as f:
+        json.dump(config, f, indent=2)
+
+    job = _scheduler.get_job(SCHEDULER_JOB_ID)
+    next_run_time = job.next_run_time if job else None
     return {
         "status": "running",
-        "next_run": f"{datetime.now().strftime('%Y-%m-%d')} {send_time}:00"
+        "next_run": next_run_time.isoformat() if next_run_time else None,
     }
 
 
 def stop_scheduler() -> Dict[str, Any]:
     """Stop the scheduler"""
+    if _scheduler.get_job(SCHEDULER_JOB_ID) is not None:
+        _scheduler.remove_job(SCHEDULER_JOB_ID)
     return {
         "status": "stopped"
     }
@@ -103,7 +208,7 @@ def build_energy_report_html(config: Dict[str, Any]) -> tuple:
 
         # Load energy data
         from data_ingestion_agent import loader, processor
-        from mail_scheduling_agent.emailer import build_email_html
+        build_email_html = _get_build_email_html()
 
         # Load the main config.yaml used by the data and KPI processor
         data_config = loader.load_config()
@@ -115,6 +220,27 @@ def build_energy_report_html(config: Dict[str, Any]) -> tuple:
 
         # Build unified dataframe
         unified_df = processor.build_unified_dataframe(grid_df, solar_df, diesel_df)
+
+        # Align report to the same 7-day date set used by dashboard views.
+        try:
+            solar_last7_df = loader.load_solar_last7_data(data_config)
+            if len(solar_last7_df) > 0 and "Date" in solar_last7_df.columns:
+                allowed_dates = set(
+                    pd.to_datetime(solar_last7_df["Date"], errors="coerce").dt.normalize().dropna()
+                )
+                unified_dates = pd.to_datetime(unified_df["Date"], errors="coerce").dt.normalize()
+                unified_df = unified_df[unified_dates.isin(allowed_dates)].copy()
+        except Exception as exc:
+            with open(_debug_log_path, 'a', encoding='utf-8') as f:
+                f.write(f"7-day alignment failed in scheduler report builder: {exc}\n")
+
+        # Fallback: if aligned data is empty, use latest 7 dates from unified data.
+        if unified_df.empty:
+            working = processor.build_unified_dataframe(grid_df, solar_df, diesel_df).copy()
+            working["_date_norm"] = pd.to_datetime(working["Date"], errors="coerce").dt.normalize()
+            unique_dates = sorted([d for d in working["_date_norm"].dropna().unique()])
+            keep_dates = set(unique_dates[-7:])
+            unified_df = working[working["_date_norm"].isin(keep_dates)].drop(columns=["_date_norm"], errors="ignore")
 
         # Reverse dataframe to show chronologically (oldest to newest)
         display_df = unified_df.sort_values('Date', ascending=True).reset_index(drop=True)
@@ -199,14 +325,22 @@ def send_email_now() -> Dict[str, Any]:
         # Attach HTML body
         msg_alternative.attach(MIMEText(html_body, "html"))
 
-        # Create and attach CSV file
-        csv_filename = f"Energy_Report_{datetime.now().strftime('%Y-%m-%d')}.csv"
-        print(f"[DEBUG] CSV Filename: {csv_filename}", flush=True)
-        csv_attachment = MIMEBase("application", "octet-stream")
-        csv_attachment.set_payload(csv_content.encode('utf-8'))
-        encoders.encode_base64(csv_attachment)
-        csv_attachment.add_header("Content-Disposition", f"attachment; filename= {csv_filename}")
-        msg.attach(csv_attachment)
+        uploaded_template_path = config.get("uploaded_template_path")
+        attachment_name = None
+
+        if uploaded_template_path and Path(uploaded_template_path).exists():
+            attachment_name = Path(uploaded_template_path).name
+            with open(uploaded_template_path, "rb") as f:
+                attachment_bytes = f.read()
+        else:
+            attachment_name = f"Energy_Report_{datetime.now().strftime('%Y-%m-%d')}.csv"
+            attachment_bytes = csv_content.encode('utf-8')
+
+        attachment = MIMEBase("application", "octet-stream")
+        attachment.set_payload(attachment_bytes)
+        encoders.encode_base64(attachment)
+        attachment.add_header("Content-Disposition", f"attachment; filename= {attachment_name}")
+        msg.attach(attachment)
 
         # Connect and send
         all_recipients = to_list + cc_list
@@ -226,8 +360,8 @@ def send_email_now() -> Dict[str, Any]:
             "timestamp": datetime.now().isoformat(),
             "status": "Success",
             "recipients": ", ".join(to_list),
-            "attachment": csv_filename,
-            "notes": f"Email sent successfully to {', '.join(to_list)} with HTML report and CSV attachment"
+            "attachment": attachment_name,
+            "notes": f"Email sent successfully to {', '.join(to_list)} with HTML report and attachment"
         }
         print(f"[DEBUG] Log Entry Attac: {log_entry['attachment']}", flush=True)
 

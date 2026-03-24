@@ -71,9 +71,10 @@ async def get_solar_kpis(
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
 ):
-    """Get solar-specific KPIs with inverter status"""
-    solar_data = data_service.load_solar_data(start_date, end_date)
-    data = solar_data["data"]
+    """Get solar-specific KPIs with inverter status."""
+    # Metrics are intentionally based on static configured last-7-days source.
+    last7_data = data_service.load_solar_last7_data()
+    data = last7_data["data"]
 
     if not data:
         return {
@@ -83,30 +84,47 @@ async def get_solar_kpis(
             "solar_target_pct": 25.0,
             "actual_solar_pct": 0,
             "energy_saved": 0,
-            "inverter_faults": 0
+            "inverter_faults": 0,
+            "weekly_trend": [],
         }
 
     import pandas as pd
     from config import SOLAR_TARGET_PERCENTAGE, GRID_COST_PER_UNIT
 
     df = pd.DataFrame(data)
+    generation_col = "Generation (kWh)" if "Generation (kWh)" in df.columns else "Solar Units Generated (KWh)"
 
-    # Count faults (any inverter status that's not "All Online")
-    inverter_faults = int(len(df[df['Inverter Status'] != 'All Online']))
+    # Fault count derived from live solar status dataset.
+    solar_status_data = data_service.load_solar_data(None, None).get("data", [])
+    inverter_faults = 0
+    if solar_status_data:
+        sdf = pd.DataFrame(solar_status_data)
+        if "Inverter Status" in sdf.columns:
+            inverter_faults = int(len(sdf[sdf["Inverter Status"] != "All Online"]))
 
-    # Calculate actual solar percentage (would need grid data for accurate calc)
-    # For now, estimate based on solar target
-    total_solar = float(df['Solar Units Generated (KWh)'].sum())
+    total_solar = float(pd.to_numeric(df[generation_col], errors="coerce").fillna(0).sum())
     energy_saved = float(total_solar * GRID_COST_PER_UNIT)
+
+    if "Date" in df.columns:
+        trend_df = df[["Date", generation_col]].copy()
+        trend_df["Date"] = pd.to_datetime(trend_df["Date"], errors="coerce")
+        trend_df = trend_df.sort_values("Date")
+        trend_df["Day"] = trend_df["Date"].dt.day_name()
+        trend_df["Date"] = trend_df["Date"].dt.strftime("%Y-%m-%d")
+        trend_df["Generation"] = pd.to_numeric(trend_df[generation_col], errors="coerce").fillna(0)
+        weekly_trend = trend_df[["Date", "Day", "Generation"]].to_dict("records")
+    else:
+        weekly_trend = []
 
     return {
         "total_solar_kwh": total_solar,
-        "avg_solar_kwh": float(df['Solar Units Generated (KWh)'].mean()),
-        "peak_solar_kwh": float(df['Solar Units Generated (KWh)'].max()),
+        "avg_solar_kwh": float(pd.to_numeric(df[generation_col], errors="coerce").fillna(0).mean()),
+        "peak_solar_kwh": float(pd.to_numeric(df[generation_col], errors="coerce").fillna(0).max()),
         "solar_target_pct": float(SOLAR_TARGET_PERCENTAGE),
         "actual_solar_pct": 0.0,  # Would need unified data
         "energy_saved": energy_saved,
-        "inverter_faults": inverter_faults
+        "inverter_faults": inverter_faults,
+        "weekly_trend": weekly_trend,
     }
 
 
@@ -129,10 +147,11 @@ async def get_diesel_kpis(
 
     import pandas as pd
     df = pd.DataFrame(data)
+    fuel_col = 'Diesel consumed' if 'Diesel consumed' in df.columns else 'Fuel Consumed (Litres)'
 
     return {
         "total_diesel_kwh": float(df['DG Units Consumed (KWh)'].sum()),
         "total_runtime": float(df['DG Runtime (hrs)'].sum()),
-        "total_fuel": float(df['Fuel Consumed (Litres)'].sum()),
+        "total_fuel": float(df[fuel_col].sum()),
         "total_diesel_cost": float(df['Total Cost (INR)'].sum())
     }

@@ -57,6 +57,7 @@
 }
 
 body {
+  margin: 0;
   background:
     radial-gradient(circle at 8% -10%, var(--bg-accent), transparent 35%),
     radial-gradient(circle at 90% 0%, var(--accent-100), transparent 30%),

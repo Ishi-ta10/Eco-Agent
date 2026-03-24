@@ -1,0 +1,8 @@
+Date,Day,Time,Diesel consumed,DG Units Consumed (KWh),DG Runtime (hrs),Cost per Unit (INR),Total Cost (INR),DG ID
+2026-03-16,Friday,09:00,17.0,17.0,0.0,30.0,510.0,DG1
+2026-03-17,Saturday,09:00,12.0,12.0,0.0,30.0,360.0,DG1
+2026-03-18,Sunday,09:00,15.0,15.0,0.0,30.0,450.0,DG1
+2026-03-19,Monday,09:00,19.0,19.0,0.0,30.0,570.0,DG1
+2026-03-20,Tuesday,09:00,17.0,17.0,0.0,30.0,510.0,DG1
+2026-03-21,Wednesday,09:00,8.0,8.0,0.0,30.0,240.0,DG1
+2026-03-22,Thursday,09:00,11.0,11.0,0.0,30.0,330.0,DG1
