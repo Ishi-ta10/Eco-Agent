@@ -67,13 +67,16 @@ const applyMixedDateWording = (items = [], displayDate) => {
   const styles = ["prefixToday", "prefixDate", "suffixToday"];
 
   const capitalizeStart = (text = "") =>
-    text.replace(/^(\s*)([a-z])/, (match, leading, chr) =>
-      `${leading}${chr.toUpperCase()}`,
+    text.replace(
+      /^(\s*)([a-z])/,
+      (match, leading, chr) => `${leading}${chr.toUpperCase()}`,
     );
 
   return items.map((item, idx) => {
     const style = styles[idx % styles.length];
-    const raw = String(item || "").replace(/\{current_date\}/gi, displayDate).trim();
+    const raw = String(item || "")
+      .replace(/\{current_date\}/gi, displayDate)
+      .trim();
 
     const withoutLeadingDate = raw.replace(
       /^as of\s+(today|\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2})\s*,?\s*/i,

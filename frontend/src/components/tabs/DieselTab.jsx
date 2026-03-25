@@ -15,11 +15,7 @@ import {
   getRecentRows,
   getRowsForDate,
 } from "../../utils/recentData";
-import {
-  Droplet,
-  AlertCircle,
-  Calendar,
-} from "lucide-react";
+import { Droplet, AlertCircle, Calendar } from "lucide-react";
 
 export const DieselTab = () => {
   const [isExporting, setIsExporting] = useState(false);

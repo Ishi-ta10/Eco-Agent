@@ -90,10 +90,14 @@ export const GridTab = () => {
   const chartData =
     recentGridRows?.map((item) => ({
       Date: item.Date,
-      "Grid Energy Consumed (kWh)":
-        asNumber(item, ["Grid Units Consumed (KWh)", "Grid KWh"]),
-      "Total Energy Consumed (kWh)":
-        asNumber(item, ["Total Units Consumed (KWh)", "Total KWh"]),
+      "Grid Energy Consumed (kWh)": asNumber(item, [
+        "Grid Units Consumed (KWh)",
+        "Grid KWh",
+      ]),
+      "Total Energy Consumed (kWh)": asNumber(item, [
+        "Total Units Consumed (KWh)",
+        "Total KWh",
+      ]),
     })) || [];
 
   return (
