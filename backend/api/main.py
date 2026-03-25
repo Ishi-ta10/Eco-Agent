@@ -4,8 +4,8 @@ Energy Dashboard API
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import data, kpis, export, scheduler
-from services import scheduler_service
+from .routers import data, kpis, export, scheduler
+from .services import scheduler_service
 
 # Create FastAPI app
 app = FastAPI(
@@ -22,11 +22,19 @@ app.add_middleware(
         "http://localhost:5174",
         "http://localhost:5175",
         "http://localhost:5176",
-        "http://localhost:3000",
-        "http://localhost:8080",
-        "http://localhost:8000",
-        "http://localhost:8888",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "http://127.0.0.1:5175",
         "http://127.0.0.1:5176",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:8890",
+        "http://127.0.0.1:8890",
+        "http://localhost:8888",
         "http://127.0.0.1:8888",
     ],
     allow_credentials=True,

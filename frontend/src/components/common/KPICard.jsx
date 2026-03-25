@@ -11,26 +11,26 @@ export const KPICard = ({
   color = "blue",
 }) => {
   const colorClasses = {
-    blue: "from-[#ecf3fb] to-[#e8eff9] border-[#c9d8ea] hover:border-[#a5bdd8]",
+    blue: "from-[#f2f6fb] to-[#e9f0f8] border-[#c7d6e7] hover:border-[#9fb6d0]",
     green:
-      "from-[#ebfaf4] to-[#e7f8f1] border-[#b7e7d5] hover:border-[#8fd2bb]",
+      "from-[#eff7f4] to-[#e7f1ed] border-[#bfd9cf] hover:border-[#98c2b2]",
     yellow:
-      "from-[#fff8ea] to-[#fef4df] border-[#f1dcad] hover:border-[#e5c980]",
-    red: "from-[#fff1f1] to-[#feeaea] border-[#f3c4c4] hover:border-[#e49b9b]",
+      "from-[#faf6ef] to-[#f4efe4] border-[#ddcfb6] hover:border-[#c8b492]",
+    red: "from-[#fbf1f2] to-[#f6e9ea] border-[#e2c0c5] hover:border-[#cb9ea6]",
   };
 
   const iconBgClasses = {
-    blue: "bg-[#dbe8f7] text-[#2563eb]",
-    green: "bg-[#d9f3e9] text-[#10b981]",
-    yellow: "bg-[#f8ebc8] text-[#d97706]",
-    red: "bg-[#f8dede] text-[#ef4444]",
+    blue: "bg-[#d8e4f2] text-[#335d88]",
+    green: "bg-[#dcece6] text-[#3a7361]",
+    yellow: "bg-[#ece3cf] text-[#957349]",
+    red: "bg-[#eedcdf] text-[#9d5260]",
   };
 
   const textColorClasses = {
-    blue: "text-[#1d4ed8]",
-    green: "text-[#059669]",
-    yellow: "text-[#b45309]",
-    red: "text-[#dc2626]",
+    blue: "text-[#294b6d]",
+    green: "text-[#2e6756]",
+    yellow: "text-[#7f6542]",
+    red: "text-[#954957]",
   };
 
   const isDeltaPositive = delta !== null && delta >= 0;
@@ -79,15 +79,15 @@ export const KPICard = ({
         <div className="mt-4 flex items-center gap-2 pt-3 border-t border-[var(--surface-border)]">
           {isDeltaPositive ? (
             <>
-              <TrendingUp size={16} className="text-green-400" />
-              <span className="text-green-400 text-sm font-medium">
+              <TrendingUp size={16} className="text-[var(--success-600)]" />
+              <span className="text-[var(--success-600)] text-sm font-medium">
                 +{delta.toFixed(2)} {deltaLabel}
               </span>
             </>
           ) : (
             <>
-              <TrendingDown size={16} className="text-red-400" />
-              <span className="text-red-400 text-sm font-medium">
+              <TrendingDown size={16} className="text-[var(--danger-600)]" />
+              <span className="text-[var(--danger-600)] text-sm font-medium">
                 {delta.toFixed(2)} {deltaLabel}
               </span>
             </>

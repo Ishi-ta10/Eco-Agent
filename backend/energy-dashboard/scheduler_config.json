@@ -3,7 +3,7 @@
   "cc": "ishaa.1518@gmail.com",
   "send_time": "10:53",
   "subject": "[Updated Layout] Daily Energy Report - Noida Campus - 23-03-2026",
-  "custom_message": "This is the daily report for past seven days energy data",
+  "custom_message": "",
   "auto_start": false,
   "include_sections": {
     "summary_kpis": true,

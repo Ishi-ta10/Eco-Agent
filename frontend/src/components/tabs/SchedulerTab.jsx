@@ -174,26 +174,26 @@ export const SchedulerTab = () => {
         <div
           className={`rounded-2xl p-4 flex items-start gap-3 border ${
             messageType === "success"
-              ? "bg-[#ebf7f2] border-[#b8ddcd]"
-              : "bg-[#fcf0ef] border-[#e4c2bf]"
+              ? "bg-[#edf5f2] border-[#c0d8d0]"
+              : "bg-[#f8eff1] border-[#debec4]"
           }`}
         >
           {messageType === "success" ? (
             <CheckCircle
-              className="text-[#1b7f5b] mt-0.5 flex-shrink-0"
+              className="text-[#346f5a] mt-0.5 flex-shrink-0"
               size={20}
             />
           ) : (
             <AlertCircle
-              className="text-[#b54747] mt-0.5 flex-shrink-0"
+              className="text-[#924857] mt-0.5 flex-shrink-0"
               size={20}
             />
           )}
           <p
             className={
               messageType === "success"
-                ? "text-[#1b7f5b] text-sm"
-                : "text-[#b54747] text-sm"
+                ? "text-[#346f5a] text-sm"
+                : "text-[#924857] text-sm"
             }
           >
             {message}
@@ -217,7 +217,7 @@ export const SchedulerTab = () => {
                 className={`w-3 h-3 rounded-full ${status?.status === "running" ? "bg-green-500 animate-pulse" : "bg-gray-500"}`}
               ></div>
               <p
-                className={`text-3xl font-bold ${status?.status === "running" ? "text-[#1b7f5b]" : "text-[var(--text-muted)]"}`}
+                className={`text-3xl font-bold ${status?.status === "running" ? "text-[#346f5a]" : "text-[var(--text-muted)]"}`}
               >
                 {status?.status === "running" ? "Running" : "Stopped"}
               </p>
@@ -322,7 +322,7 @@ export const SchedulerTab = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[var(--accent-500)] text-white font-semibold rounded-xl hover:bg-[var(--accent-600)] transition-all disabled:bg-gray-400 shadow-md"
+            className="btn-primary disabled:bg-gray-400"
           >
             <Mail size={16} />
             {isLoading ? "Saving..." : "Save Configuration"}
@@ -336,7 +336,7 @@ export const SchedulerTab = () => {
           Custom Excel Template
         </h2>
         <div className="flex items-center gap-4 flex-wrap">
-          <label className="flex items-center gap-2 px-6 py-2.5 bg-[var(--success-600)] text-white font-semibold rounded-xl hover:brightness-110 transition-all cursor-pointer shadow-md">
+          <label className="btn-success cursor-pointer">
             <Upload size={16} />
             Upload Template
             <input
@@ -360,7 +360,7 @@ export const SchedulerTab = () => {
           <button
             onClick={handleStart}
             disabled={isLoading || status?.status === "running"}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[var(--success-600)] text-white font-semibold rounded-xl hover:brightness-110 transition-all disabled:bg-gray-400 shadow-md disabled:shadow-none"
+            className="btn-success disabled:bg-gray-400 disabled:shadow-none"
           >
             <Play size={16} />
             Start Scheduler
@@ -369,7 +369,7 @@ export const SchedulerTab = () => {
           <button
             onClick={handleStop}
             disabled={isLoading || status?.status === "stopped"}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[var(--danger-600)] text-white font-semibold rounded-xl hover:brightness-110 transition-all disabled:bg-gray-400 shadow-md disabled:shadow-none"
+            className="btn-danger disabled:bg-gray-400 disabled:shadow-none"
           >
             <Square size={16} />
             Stop Scheduler
@@ -378,7 +378,7 @@ export const SchedulerTab = () => {
           <button
             onClick={handleSendNow}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[var(--accent-500)] text-white font-semibold rounded-xl hover:bg-[var(--accent-600)] transition-all disabled:bg-gray-400 shadow-md disabled:shadow-none"
+            className="btn-primary disabled:bg-gray-400 disabled:shadow-none"
           >
             <Send size={16} />
             Send Now (Test)
@@ -390,7 +390,7 @@ export const SchedulerTab = () => {
               loadHistory();
             }}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-[#6b7a8d] text-white font-semibold rounded-xl hover:brightness-110 transition-all disabled:bg-gray-400 shadow-md"
+            className="btn-neutral disabled:bg-gray-400"
           >
             <RefreshCw size={16} />
             Refresh

@@ -22,6 +22,26 @@ from data_ingestion_agent.processor import build_unified_dataframe, compute_over
 from data_ingestion_agent.exporter import export_ecs_style_xlsx
 
 
+DEFAULT_CURRENT_DATE = "2026-03-22"
+
+
+def _normalize_date_label(value: str) -> str:
+    parsed = pd.to_datetime(value, errors="coerce")
+    if pd.isna(parsed):
+        return value
+    return parsed.strftime("%d-%m-%Y")
+
+
+def _filter_current_day_rows(df: pd.DataFrame, current_date: str = DEFAULT_CURRENT_DATE) -> pd.DataFrame:
+    if df is None or df.empty or "Date" not in df.columns:
+        return df.copy() if isinstance(df, pd.DataFrame) else pd.DataFrame()
+
+    working = df.copy()
+    working["_date_norm"] = pd.to_datetime(working["Date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    filtered = working[working["_date_norm"] == current_date].drop(columns=["_date_norm"], errors="ignore")
+    return filtered
+
+
 def _project_root() -> str:
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -265,8 +285,8 @@ def _coerce_bullet_list(value, fallback: list[str]) -> list[str]:
     return fallback
 
 
-def _generate_ai_summary(unified: pd.DataFrame, kpis: dict, smb_statuses: dict, diesel_total: float) -> dict | None:
-    """Generate insights/recommendations from Groq SDK chat completions API."""
+def _generate_ai_summary(unified: pd.DataFrame, kpis: dict, smb_statuses: dict, diesel_total: float, current_date: str = DEFAULT_CURRENT_DATE) -> dict | None:
+    """Generate insights/recommendations from Groq SDK chat completions API based on current day data."""
     _load_env()
     api_key = (os.getenv("GROQ_API_KEY") or os.getenv("GROK_API_KEY") or "").strip()
     if not api_key:
@@ -292,30 +312,33 @@ def _generate_ai_summary(unified: pd.DataFrame, kpis: dict, smb_statuses: dict, 
 
     client = Groq(api_key=api_key)
 
-    grid_col = "Grid KWh" if "Grid KWh" in unified.columns else "Grid Units Consumed (KWh)"
-    solar_col = "Solar KWh" if "Solar KWh" in unified.columns else "Solar Units Generated (KWh)"
+    # Filter data to current day only for insights
+    current_day_data = _filter_current_day_rows(unified, current_date)
+
+    grid_col = "Grid KWh" if "Grid KWh" in current_day_data.columns else "Grid Units Consumed (KWh)"
+    solar_col = "Solar KWh" if "Solar KWh" in current_day_data.columns else "Solar Units Generated (KWh)"
+
+    # Calculate current day metrics
+    current_day_grid = float(pd.to_numeric(current_day_data.get(grid_col, 0), errors="coerce").fillna(0).sum()) if grid_col in current_day_data.columns else 0.0
+    current_day_solar = float(pd.to_numeric(current_day_data.get(solar_col, 0), errors="coerce").fillna(0).sum()) if solar_col in current_day_data.columns else 0.0
+    current_day_total = current_day_grid + current_day_solar
+    current_day_solar_pct = (current_day_solar / current_day_total * 100) if current_day_total > 0 else 0.0
+
+    diesel_col = "Diesel consumed" if "Diesel consumed" in current_day_data.columns else "Fuel Consumed (Litres)"
+    current_day_diesel = float(pd.to_numeric(current_day_data.get(diesel_col, 0), errors="coerce").fillna(0).sum()) if diesel_col in current_day_data.columns else 0.0
 
     payload = {
-        "summary": {
-            "total_kwh": float(kpis.get("total_kwh", 0) or 0),
-            "solar_kwh": float(kpis.get("solar_kwh", 0) or 0),
-            "solar_pct": float(kpis.get("solar_pct", 0) or 0),
-            "total_cost_inr": float(kpis.get("total_cost", 0) or 0),
-            "energy_saved_inr": float(kpis.get("energy_saved", 0) or 0),
-            "avg_temp_c": float(kpis.get("avg_temp", 0) or 0),
-            "diesel_consumed": float(diesel_total or 0),
-        },
-        "source_wise_energy_kwh": {
-            "grid": float(pd.to_numeric(unified.get(grid_col, 0), errors="coerce").fillna(0).sum())
-            if grid_col in unified.columns
-            else 0.0,
-            "solar": float(pd.to_numeric(unified.get(solar_col, 0), errors="coerce").fillna(0).sum())
-            if solar_col in unified.columns
-            else 0.0,
+        "current_date": current_date,
+        "current_day_summary": {
+            "total_kwh": float(current_day_total),
+            "grid_kwh": float(current_day_grid),
+            "solar_kwh": float(current_day_solar),
+            "solar_pct": float(current_day_solar_pct),
+            "diesel_consumed": float(current_day_diesel),
         },
         "inverter_status": smb_statuses,
-        "records": (
-            unified.tail(10)[
+        "current_day_records": (
+            current_day_data[
                 [
                     c
                     for c in [
@@ -329,7 +352,7 @@ def _generate_ai_summary(unified: pd.DataFrame, kpis: dict, smb_statuses: dict, 
                         "Diesel consumed",
                         "Inverter Status",
                     ]
-                    if c in unified.columns
+                    if c in current_day_data.columns
                 ]
             ]
             .fillna(0)
@@ -338,10 +361,20 @@ def _generate_ai_summary(unified: pd.DataFrame, kpis: dict, smb_statuses: dict, 
     }
 
     user_prompt = (
-        "using the given energy consumption data, generate insights and recommendations, this may include a "
-        "comparison of the energy generated source wise, the estimated savings, status of the machines(inactive/active), "
-        "RECOMMENDATIONS for optimizing the performance e.g cleaning may be needed, hardware failure issue.\n\n"
-        "GUIDELINES: DO NOT HALLUCINATE, INSIGHTS AND RECOMMENDATIONS SHOULD STRICTLY BE BASED ON THE INFORMATION PROVIDED"
+        f"Using the given energy consumption data FOR {current_date} (current day), generate insights and recommendations.\n\n"
+        "Interpret total energy consumption strictly as Grid + Solar only. Do not include diesel in total energy consumed.\n\n"
+        "This may include:\n"
+        "- Comparison of the energy generated/consumed source wise (Grid vs Solar)\n"
+        "- Current day solar contribution percentage\n"
+        "- Status of the inverters (active/inactive/faulted)\n"
+        "- Diesel consumption patterns\n"
+        "- RECOMMENDATIONS for optimizing the performance (e.g., cleaning may be needed, hardware failure issues, load management)\n\n"
+        "CRITICAL REQUIREMENTS:\n"
+        f"1. ALL insights should mention they are 'as of today' or 'for today' or include the date '{current_date}, any of the three not all'\n"
+        "2. Base insights ONLY on the current day data provided\n"
+        "3. DO NOT HALLUCINATE - insights and recommendations should STRICTLY be based on the information provided\n"
+        "4. Use specific numbers from the data when available\n\n"
+        "GUIDELINES: Return concise, actionable insights that are clearly marked as today's observations."
     )
 
     last_err = None
@@ -393,52 +426,80 @@ def _generate_ai_summary(unified: pd.DataFrame, kpis: dict, smb_statuses: dict, 
     return None
 
 
-def generate_smart_summary(unified: pd.DataFrame, kpis: dict) -> dict:
-    """Build smart insights/recommendations using LLM with deterministic fallback."""
-    smb_statuses = _derive_smb_statuses(unified)
+def generate_smart_summary(unified: pd.DataFrame, kpis: dict, current_date: str = DEFAULT_CURRENT_DATE) -> dict:
+    """Build smart insights/recommendations using LLM with deterministic fallback based on current day data."""
+    # Filter to current day data for insights
+    current_day_data = _filter_current_day_rows(unified, current_date)
+
+    smb_statuses = _derive_smb_statuses(current_day_data)
     total_inverters = len(smb_statuses) if smb_statuses else 5
     fault_count = max(total_inverters - sum(1 for s in smb_statuses.values() if s == "online"), 0)
 
     diesel_col = None
     for candidate in ["Diesel consumed", "Fuel Consumed (Litres)"]:
-        if candidate in unified.columns:
+        if candidate in current_day_data.columns:
             diesel_col = candidate
             break
     diesel_total = (
-        float(pd.to_numeric(unified[diesel_col], errors="coerce").fillna(0).sum())
+        float(pd.to_numeric(current_day_data[diesel_col], errors="coerce").fillna(0).sum())
         if diesel_col
         else 0.0
     )
 
-    solar_pct = float(kpis.get("solar_pct", 0) or 0)
+    # Calculate current day solar contribution
+    grid_col = "Grid KWh" if "Grid KWh" in current_day_data.columns else "Grid Units Consumed (KWh)"
+    solar_col = "Solar KWh" if "Solar KWh" in current_day_data.columns else "Solar Units Generated (KWh)"
+
+    current_day_grid = float(pd.to_numeric(current_day_data.get(grid_col, 0), errors="coerce").fillna(0).sum()) if grid_col in current_day_data.columns else 0.0
+    current_day_solar = float(pd.to_numeric(current_day_data.get(solar_col, 0), errors="coerce").fillna(0).sum()) if solar_col in current_day_data.columns else 0.0
+    current_day_total = current_day_grid + current_day_solar
+    solar_pct = (current_day_solar / current_day_total * 100) if current_day_total > 0 else 0.0
 
     insights = []
     recommendations = []
 
     if fault_count > 0:
-        insights.append(f"{fault_count} of {total_inverters} inverters are not online in the latest snapshot.")
+        insights.append(f"As of today ({current_date}), {fault_count} of {total_inverters} inverters are not online.")
         recommendations.append("Inspect faulted inverter lines and restore all SMB units to online status.")
     else:
-        insights.append(f"All {total_inverters} inverters are online and available for generation.")
+        insights.append(f"As of today ({current_date}), all {total_inverters} inverters are online and available for generation.")
         recommendations.append("Maintain current inverter health with preventive checks.")
 
-    insights.append(f"Solar contribution is {solar_pct:.1f}% for the current rolling 7-day window.")
+    insights.append(f"Solar contribution for today ({current_date}) is {solar_pct:.1f}% of total energy consumption.")
     if solar_pct < 20:
         recommendations.append("Increase panel cleaning frequency and shift daytime loads toward solar generation.")
 
     if diesel_total > 0:
-        insights.append(f"Diesel consumed is {diesel_total:.1f} in the current rolling 7-day window.")
+        insights.append(f"Diesel consumption for today ({current_date}) is {diesel_total:.1f} litres.")
         recommendations.append("Analyze DG usage intervals and reduce generator dependency where possible.")
     else:
-        insights.append("No diesel consumption is recorded for the current rolling 7-day window.")
+        insights.append(f"No diesel consumption is recorded for today ({current_date}).")
 
-    ai_summary = _generate_ai_summary(unified, kpis, smb_statuses, diesel_total)
+    ai_summary = _generate_ai_summary(current_day_data, kpis, smb_statuses, diesel_total, current_date)
     if ai_summary:
         insights = _coerce_bullet_list(ai_summary.get("insights"), insights)
         recommendations = _coerce_bullet_list(ai_summary.get("recommendations"), recommendations)
         source = "llm"
     else:
         source = "fallback"
+
+    # Enforce current-day context in every line for email readability and correctness.
+    def _ensure_current_context(items: list[str]) -> list[str]:
+        normalized = []
+        for text in items:
+            value = str(text or "").strip()
+            if not value:
+                continue
+            lower = value.lower()
+            mentions_today = "today" in lower
+            mentions_date = current_date in value
+            if not mentions_today and not mentions_date:
+                value = f"As of today ({current_date}), {value[0].lower() + value[1:] if len(value) > 1 else value.lower()}"
+            normalized.append(value)
+        return normalized
+
+    insights = _ensure_current_context(insights)
+    recommendations = _ensure_current_context(recommendations)
 
     return {
         "insights": insights,
@@ -447,15 +508,16 @@ def generate_smart_summary(unified: pd.DataFrame, kpis: dict) -> dict:
     }
 
 
-def _build_executive_summary_html(unified: pd.DataFrame, kpis: dict) -> str:
-    """Create executive summary with insights and recommendations."""
-    summary = generate_smart_summary(unified, kpis)
+def _build_executive_summary_html(unified: pd.DataFrame, kpis: dict, current_date: str = DEFAULT_CURRENT_DATE) -> str:
+    """Create executive summary with insights and recommendations based on current day data."""
+    summary = generate_smart_summary(unified, kpis, current_date)
     insights = summary.get("insights", [])
     recommendations = summary.get("recommendations", [])
 
     parts = [
         '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; background:#F8FBFF; border:1px solid #D7E4F2;">',
         '<tr><td style="padding:12px 14px; font-size:13px; color:#1F3864; font-weight:bold;">Executive Summary</td></tr>',
+        f'<tr><td style="padding:0 14px 10px 14px; font-size:11px; color:#5a6f85;">All insights and recommendations are based on current date: {_normalize_date_label(current_date)}</td></tr>',
         '<tr><td style="padding:0 14px 10px 14px;">',
         '<div style="font-size:12px; color:#2f2f2f; font-weight:bold; margin-bottom:4px;">Insights</div>',
         '<ul style="margin:0 0 10px 18px; padding:0; font-size:12px; color:#333;">',
@@ -510,7 +572,7 @@ def _build_inverter_table_html(unified: pd.DataFrame) -> str:
 
 
 def build_email_html(unified: pd.DataFrame, config: dict, custom_message: str = "",
-                     include_sections: dict = None) -> str:
+                     include_sections: dict = None, current_date: str = DEFAULT_CURRENT_DATE) -> str:
     """
     Render the Jinja2 email template.
     Dynamic HTML tables are pre-built in Python so the template has
@@ -520,7 +582,9 @@ def build_email_html(unified: pd.DataFrame, config: dict, custom_message: str = 
     env = Environment(loader=FileSystemLoader(templates_dir), autoescape=False)
     template = env.get_template("email_body.html")
 
-    kpis = compute_overview_kpis(unified, config)
+    current_day_unified = _filter_current_day_rows(unified, current_date)
+    kpi_source = current_day_unified if not current_day_unified.empty else unified
+    kpis = compute_overview_kpis(kpi_source, config)
 
     # Pre-format KPI values as strings
     kpi_total_kwh = f"{kpis.get('total_kwh', 0):,.1f}"
@@ -533,7 +597,7 @@ def build_email_html(unified: pd.DataFrame, config: dict, custom_message: str = 
     # Pre-render complex HTML tables in Python
     ecs_table_html = _build_ecs_table_html(unified)
     inverter_table_html = _build_inverter_table_html(unified)
-    executive_summary_html = _build_executive_summary_html(unified, kpis)
+    executive_summary_html = _build_executive_summary_html(kpi_source, kpis, current_date)
 
     if include_sections is None:
         include_sections = {
@@ -547,7 +611,8 @@ def build_email_html(unified: pd.DataFrame, config: dict, custom_message: str = 
         }
 
     html = template.render(
-        report_date=date.today().strftime("%d %B %Y"),
+        report_date=_normalize_date_label(current_date),
+        current_date_display=_normalize_date_label(current_date),
         custom_message=custom_message,
         kpi_total_kwh=kpi_total_kwh,
         kpi_solar_kwh=kpi_solar_kwh,
@@ -662,7 +727,8 @@ def send_daily_report():
     custom_message = sched_config.get("custom_message", "")
     include_sections = sched_config.get("include_sections", None)
 
-    html_body = build_email_html(day_data, config, custom_message, include_sections)
+    current_date = DEFAULT_CURRENT_DATE
+    html_body = build_email_html(day_data, config, custom_message, include_sections, current_date)
 
     # Attachment: custom template or ECS-format xlsx
     uploaded_path = sched_config.get("uploaded_template_path")

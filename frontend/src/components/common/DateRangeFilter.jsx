@@ -21,7 +21,7 @@ export const DateRangeFilter = () => {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white/65 border border-[var(--surface-border)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent transition-all"
           />
         </div>
       </div>
@@ -41,15 +41,12 @@ export const DateRangeFilter = () => {
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white/65 border border-[var(--surface-border)] rounded-xl text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-xl text-[var(--input-text)] placeholder-[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-500)] focus:border-transparent transition-all"
           />
         </div>
       </div>
 
-      <button
-        onClick={resetDates}
-        className="px-6 py-2.5 text-sm font-semibold text-white bg-[var(--accent-500)] rounded-xl hover:bg-[var(--accent-600)] transition-all flex items-center gap-2 shadow-md"
-      >
+      <button onClick={resetDates} className="btn-primary">
         <RotateCcw size={16} />
         Reset
       </button>

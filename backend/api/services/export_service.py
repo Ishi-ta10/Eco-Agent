@@ -12,7 +12,7 @@ energy_dashboard_path = Path(__file__).parent.parent.parent / "energy-dashboard"
 sys.path.insert(0, str(energy_dashboard_path))
 
 from data_ingestion_agent import loader, processor, exporter
-from config import config
+from ..config import config
 
 
 def export_unified_excel(start_date: Optional[str] = None, end_date: Optional[str] = None) -> BytesIO:

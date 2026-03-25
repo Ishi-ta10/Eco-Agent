@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useDateStore } from "../../store/dateStore";
 import {
   useOverviewKPIs,
   useSolarData,
@@ -14,42 +13,45 @@ import { DonutChart } from "../charts/DonutChart";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { exportAPI } from "../../api/endpoints";
 import {
+  asNumber,
+  EFFECTIVE_TODAY,
+  EFFECTIVE_TODAY_DISPLAY,
+  getLatestRow,
+  getRecentDateRange,
+  getRecentRows,
+  getRowsForDate,
+} from "../../utils/recentData";
+import {
   Zap,
   Sun,
   DollarSign,
   Leaf,
-  Thermometer,
   TrendingUp,
   ShieldCheck,
   CircleDollarSign,
 } from "lucide-react";
 
-const asNumber = (row, keys) => {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value !== undefined && value !== null && value !== "") {
-      const parsed = parseFloat(value);
-      if (!Number.isNaN(parsed)) {
-        return parsed;
-      }
-    }
-  }
-  return 0;
-};
-
 const buildOverviewChartData = (rows = []) => {
   const groupedByDate = rows.reduce((acc, row) => {
     const date = row?.Date || "Unknown";
     if (!acc[date]) {
-      acc[date] = { Date: date, Grid: 0, Solar: 0, Diesel: 0 };
+      acc[date] = {
+        Date: date,
+        "Grid Energy Consumed (kWh)": 0,
+        "Solar Energy Generated (kWh)": 0,
+        "Diesel Generator Energy Consumed (kWh)": 0,
+      };
     }
 
-    acc[date].Grid += asNumber(row, ["Grid KWh", "Grid Units Consumed (KWh)"]);
-    acc[date].Solar += asNumber(row, [
+    acc[date]["Grid Energy Consumed (kWh)"] += asNumber(row, [
+      "Grid KWh",
+      "Grid Units Consumed (KWh)",
+    ]);
+    acc[date]["Solar Energy Generated (kWh)"] += asNumber(row, [
       "Solar KWh",
       "Solar Units Generated (KWh)",
     ]);
-    acc[date].Diesel += asNumber(row, [
+    acc[date]["Diesel Generator Energy Consumed (kWh)"] += asNumber(row, [
       "Diesel KWh",
       "DG Units Consumed (KWh)",
     ]);
@@ -61,15 +63,54 @@ const buildOverviewChartData = (rows = []) => {
   );
 };
 
+const applyMixedDateWording = (items = [], displayDate) => {
+  const styles = ["prefixToday", "prefixDate", "suffixToday"];
+
+  const capitalizeStart = (text = "") =>
+    text.replace(/^(\s*)([a-z])/, (match, leading, chr) =>
+      `${leading}${chr.toUpperCase()}`,
+    );
+
+  return items.map((item, idx) => {
+    const style = styles[idx % styles.length];
+    const raw = String(item || "").replace(/\{current_date\}/gi, displayDate).trim();
+
+    const withoutLeadingDate = raw.replace(
+      /^as of\s+(today|\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2})\s*,?\s*/i,
+      "",
+    );
+    const withoutTrailingDate = withoutLeadingDate.replace(
+      /\s*,?\s*as of\s+(today|\d{2}-\d{2}-\d{4}|\d{4}-\d{2}-\d{2})\.?\s*$/i,
+      "",
+    );
+    const core = capitalizeStart(withoutTrailingDate.trim());
+
+    if (!core) return raw;
+
+    const sentence = /[.!?]$/.test(core) ? core : `${core}.`;
+
+    if (style === "prefixToday") {
+      return `As of today, ${sentence}`;
+    }
+
+    if (style === "prefixDate") {
+      return `As of ${displayDate}, ${sentence}`;
+    }
+
+    return `${sentence.replace(/[.!?]+$/, "")} as of today.`;
+  });
+};
+
 export const OverviewTab = () => {
-  const { startDate, endDate } = useDateStore();
   const [isExporting, setIsExporting] = useState(false);
+  const { startDate, endDate } = getRecentDateRange(7);
 
   const {
     data: kpiData,
     isLoading: kpiLoading,
     error: kpiError,
   } = useOverviewKPIs(startDate, endDate);
+
   const {
     data: unifiedData,
     isLoading: dataLoading,
@@ -112,40 +153,75 @@ export const OverviewTab = () => {
     return <LoadingSpinner message="Loading overview data..." />;
   }
 
-  if (kpiError || dataError || solarError || fallbackSolarError) {
+  if (dataError || solarError || fallbackSolarError) {
     return (
       <div className="text-center py-12">
         <p className="text-[var(--danger-600)] text-lg">
           Error loading data. Please check backend connection.
         </p>
         <p className="text-[var(--text-muted)] mt-2">
-          {kpiError?.message || dataError?.message}
+          {dataError?.message || solarError?.message}
         </p>
       </div>
     );
   }
 
+  const recentUnifiedRows = getRecentRows(unifiedData?.data || [], 7);
+  const todayUnifiedRows = getRowsForDate(recentUnifiedRows, EFFECTIVE_TODAY);
+  const latestUnifiedRow = getLatestRow(todayUnifiedRows);
+
   const selectedSolarRows = solarData?.data || [];
   const fallbackSolarRows = fallbackSolarData?.data || [];
   const useSolarFallback =
     selectedSolarRows.length === 0 && fallbackSolarRows.length > 0;
-  const activeSolarRows = useSolarFallback
-    ? fallbackSolarRows
-    : selectedSolarRows;
+  const activeSolarRows = getRecentRows(
+    useSolarFallback ? fallbackSolarRows : selectedSolarRows,
+    7,
+  );
+  const todaySolarRows = getRowsForDate(activeSolarRows, EFFECTIVE_TODAY);
+  const latestSolarRow = getLatestRow(todaySolarRows);
+
+  const chartData = buildOverviewChartData(recentUnifiedRows);
+
+  const latestTotalEnergyConsumed = asNumber(latestUnifiedRow, [
+    "Total Units Consumed (KWh)",
+    "Total KWh",
+    "Total Energy",
+  ]);
+  const latestSolarEnergyGenerated =
+    asNumber(latestUnifiedRow, ["Solar Units Generated (KWh)", "Solar KWh"]) ||
+    asNumber(latestSolarRow, ["Solar Units Generated (KWh)", "Solar KWh"]);
+  const latestTotalEnergyCost = asNumber(latestUnifiedRow, [
+    "Total Cost (INR)",
+    "Total Cost",
+    "Cost",
+  ]);
+  const latestEstimatedSavings = asNumber(latestUnifiedRow, [
+    "Energy Saving (INR)",
+    "Energy Saved (INR)",
+    "Energy Saved",
+    "Savings",
+  ]);
+  const latestSolarContribution = latestTotalEnergyConsumed
+    ? (latestSolarEnergyGenerated / latestTotalEnergyConsumed) * 100
+    : 0;
+
   const activeSolarRange = useSolarFallback
     ? fallbackSolarData?.date_range
     : solarData?.date_range;
 
-  const chartData = buildOverviewChartData(unifiedData?.data || []);
-  const totalGrid = chartData.reduce((sum, row) => sum + row.Grid, 0);
-  const rangeSolarTotal = chartData.reduce((sum, row) => sum + row.Solar, 0);
-  const fallbackSolarTotal = activeSolarRows.reduce(
-    (sum, row) =>
-      sum + asNumber(row, ["Solar Units Generated (KWh)", "Solar KWh"]),
+  const totalGrid = chartData.reduce(
+    (sum, row) => sum + row["Grid Energy Consumed (kWh)"],
     0,
   );
-  const totalSolar = rangeSolarTotal > 0 ? rangeSolarTotal : fallbackSolarTotal;
-  const totalDiesel = chartData.reduce((sum, row) => sum + row.Diesel, 0);
+  const totalSolar = chartData.reduce(
+    (sum, row) => sum + row["Solar Energy Generated (kWh)"],
+    0,
+  );
+  const totalDiesel = chartData.reduce(
+    (sum, row) => sum + row["Diesel Generator Energy Consumed (kWh)"],
+    0,
+  );
   const combinedTotal = totalGrid + totalSolar + totalDiesel;
 
   const sourceMixData = [
@@ -163,48 +239,30 @@ export const OverviewTab = () => {
     },
   ];
 
-  const operationHealth = [
-    {
-      label: "Solar Penetration",
-      value: Number(kpiData?.solar_pct || 0),
-      tone: "bg-[#10b981]",
-    },
-    {
-      label: "Energy Savings Index",
-      value: combinedTotal
-        ? Number(((kpiData?.energy_saved || 0) / combinedTotal).toFixed(2)) * 10
-        : 0,
-      tone: "bg-[#2563eb]",
-    },
-    {
-      label: "Cost Stability",
-      value: combinedTotal
-        ? Math.max(0, 100 - (totalDiesel / combinedTotal) * 100)
-        : 0,
-      tone: "bg-[#f59e0b]",
-    },
-  ];
-
   const insightCards = [
     {
       title: "Best Source Mix",
       text: `${(sourceMixData[1]?.value || 0).toFixed(1)}% from solar keeps operating costs stable.`,
       icon: ShieldCheck,
-      accent: "text-[#0ea5a8]",
+      accent: "text-[#4f8d7d]",
     },
     {
       title: "Cost Exposure",
       text: `Diesel share is ${(sourceMixData[2]?.value || 0).toFixed(1)}%. Lowering it improves margin resilience.`,
       icon: CircleDollarSign,
-      accent: "text-[#2563eb]",
+      accent: "text-[#3f6894]",
     },
   ];
 
-  const smartInsights = Array.isArray(kpiData?.insights) ? kpiData.insights : [];
-  const smartRecommendations = Array.isArray(kpiData?.recommendations)
-    ? kpiData.recommendations
+  const smartInsights = Array.isArray(kpiData?.insights)
+    ? applyMixedDateWording(kpiData.insights, EFFECTIVE_TODAY_DISPLAY)
     : [];
-  const insightsSource = kpiData?.insights_source || "fallback";
+  const smartRecommendations = Array.isArray(kpiData?.recommendations)
+    ? applyMixedDateWording(kpiData.recommendations, EFFECTIVE_TODAY_DISPLAY)
+    : [];
+  const insightsSource = kpiError
+    ? "fallback"
+    : kpiData?.insights_source || "fallback";
 
   return (
     <div className="space-y-8">
@@ -212,184 +270,156 @@ export const OverviewTab = () => {
       <div>
         <h2 className="text-2xl font-bold section-title mb-4 flex items-center gap-2">
           <TrendingUp className="text-[var(--accent-500)]" size={28} />
-          Key Performance Indicators
+          Key Metrics of Today
         </h2>
+        <p className="text-sm text-[var(--text-muted)] mb-4">
+          Date: {EFFECTIVE_TODAY_DISPLAY}
+        </p>
         {useSolarFallback && (
           <div className="mb-4 surface-card rounded-xl p-4 border border-[var(--accent-200)] bg-[var(--accent-50)]">
             <p className="text-sm text-[var(--text-primary)]">
               No solar records were found in the selected date range. Overview
-              is using latest available solar data
+              is using the latest available solar day
               {activeSolarRange?.min_date && activeSolarRange?.max_date
                 ? ` from ${activeSolarRange.min_date} to ${activeSolarRange.max_date}.`
                 : "."}
             </p>
           </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <KPICard
-            title="Total Energy"
-            value={kpiData?.total_kwh || 0}
+            title="Total Energy Consumed"
+            value={latestTotalEnergyConsumed}
             unit="kWh"
             color="blue"
             icon={Zap}
           />
           <KPICard
-            title="Solar Generated"
-            value={totalSolar || kpiData?.solar_kwh || 0}
+            title="Solar Energy Generated"
+            value={latestSolarEnergyGenerated}
             unit="kWh"
             color="yellow"
             icon={Sun}
           />
           <KPICard
-            title="Solar %"
-            value={kpiData?.solar_pct || 0}
+            title="Solar Contribution To Consumption"
+            value={latestSolarContribution}
             unit="%"
             color="green"
           />
           <KPICard
-            title="Total Cost"
-            value={kpiData?.total_cost || 0}
+            title="Total Energy Cost"
+            value={latestTotalEnergyCost}
             unit="INR"
             color="red"
             icon={DollarSign}
           />
           <KPICard
-            title="Energy Saved"
-            value={kpiData?.energy_saved || 0}
+            title="Estimated Energy Cost Savings"
+            value={latestEstimatedSavings}
             unit="INR"
             color="green"
             icon={Leaf}
           />
-          <KPICard
-            title="Avg Temperature"
-            value={kpiData?.avg_temp || 0}
-            unit="°C"
-            color="blue"
-            icon={Thermometer}
-          />
         </div>
       </div>
 
-      {/* Charts */}
-      <div>
-        <h2 className="text-2xl font-bold section-title mb-4">Energy Trends</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <StackedBarChart
-            data={chartData}
-            title="Daily Energy Mix"
-            dataKeys={["Grid", "Solar", "Diesel"]}
-            colors={["#2563eb", "#10b981", "#f59e0b"]}
-          />
-          <LineChartComponent
-            data={chartData}
-            title="Energy Distribution Trend"
-            dataKeys={["Grid", "Solar", "Diesel"]}
-            colors={["#2563eb", "#10b981", "#f59e0b"]}
-          />
-        </div>
-      </div>
-
-      {/* Added visual features */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2">
-          <DonutChart
-            data={sourceMixData}
-            title="Energy Source Contribution"
-            colors={["#2563eb", "#10b981", "#f59e0b"]}
-          />
-        </div>
-        <div className="surface-card rounded-2xl p-6">
-          <h3 className="text-xl font-bold section-title mb-6">
-            Operational Health
-          </h3>
-          <div className="space-y-5">
-            {operationHealth.map((item) => (
-              <div key={item.label}>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-[var(--text-primary)] font-medium">
-                    {item.label}
-                  </span>
-                  <span className="text-[var(--text-muted)]">
-                    {Math.min(100, item.value).toFixed(1)}%
-                  </span>
-                </div>
-                <div className="h-2.5 w-full bg-[var(--accent-100)] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${item.tone}`}
-                    style={{ width: `${Math.min(100, item.value)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="surface-card rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-[var(--text-primary)]">
+              Smart Insights
+            </h3>
+            <span className="text-xs px-2 py-1 rounded-full bg-[var(--accent-100)] text-[var(--text-muted)] uppercase tracking-wide">
+              {insightsSource}
+            </span>
           </div>
-        </div>
-      </div>
-
-      {smartInsights.length > 0 || smartRecommendations.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="surface-card rounded-2xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-[var(--text-primary)]">
-                Insights
-              </h3>
-              <span className="text-xs px-2 py-1 rounded-full bg-[var(--accent-100)] text-[var(--text-muted)] uppercase tracking-wide">
-                {insightsSource}
-              </span>
-            </div>
+          {smartInsights.length > 0 ? (
             <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--text-muted)]">
               {smartInsights.map((item, idx) => (
                 <li key={`insight-${idx}`}>{item}</li>
               ))}
             </ul>
-          </div>
+          ) : (
+            <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--text-muted)]">
+              {insightCards.map((item, idx) => (
+                <li key={`fallback-insight-${idx}`}>{item.text}</li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-          <div className="surface-card rounded-2xl p-5">
-            <h3 className="font-semibold text-[var(--text-primary)] mb-3">
-              Recommendations
-            </h3>
+        <div className="surface-card rounded-2xl p-5">
+          <h3 className="font-semibold text-[var(--text-primary)] mb-3">
+            Smart Recommendations
+          </h3>
+          {smartRecommendations.length > 0 ? (
             <ul className="list-disc pl-5 space-y-2 text-sm text-[var(--text-muted)]">
               {smartRecommendations.map((item, idx) => (
                 <li key={`recommendation-${idx}`}>{item}</li>
               ))}
             </ul>
-          </div>
+          ) : (
+            <p className="text-sm text-[var(--text-muted)]">
+              Recommendations are generated when enough context is available in
+              the selected 7-day window ending on 2026-03-22.
+            </p>
+          )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {insightCards.map((insight) => {
-            const Icon = insight.icon;
-            return (
-              <div key={insight.title} className="surface-card rounded-2xl p-5">
-                <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-[var(--accent-100)] flex items-center justify-center">
-                    <Icon className={insight.accent} size={20} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[var(--text-primary)]">
-                      {insight.title}
-                    </p>
-                    <p className="text-sm text-[var(--text-muted)] mt-1">
-                      {insight.text}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      </div>
+
+      {/* Charts */}
+      <div>
+        <h2 className="text-2xl font-bold section-title mb-4">
+          Energy Trends (Last 7 Days)
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <StackedBarChart
+            data={chartData}
+            title="Daily Energy Mix (Last 7 Days)"
+            dataKeys={[
+              "Grid Energy Consumed (kWh)",
+              "Solar Energy Generated (kWh)",
+              "Diesel Generator Energy Consumed (kWh)",
+            ]}
+            colors={["#3f6894", "#4f8d7d", "#b68656"]}
+          />
+          <LineChartComponent
+            data={chartData}
+            title="Energy Distribution Trend (Last 7 Days)"
+            dataKeys={[
+              "Grid Energy Consumed (kWh)",
+              "Solar Energy Generated (kWh)",
+              "Diesel Generator Energy Consumed (kWh)",
+            ]}
+            colors={["#3f6894", "#4f8d7d", "#b68656"]}
+          />
         </div>
-      )}
+      </div>
+
+      {/* Added visual features */}
+      <DonutChart
+        data={sourceMixData}
+        title="Energy Source Contribution"
+        colors={["#3f6894", "#4f8d7d", "#b68656"]}
+      />
 
       {/* Data Table */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold section-title">Detailed Data</h2>
+          <h2 className="text-2xl font-bold section-title">
+            Detailed Data (Last 7 Days)
+          </h2>
           <ExportButton
             onClick={handleExport}
             isLoading={isExporting}
             label="Export Excel"
           />
         </div>
-        <DataTable data={unifiedData?.data || []} hideColumns={[]} />
+        <DataTable
+          data={recentUnifiedRows}
+          hideColumns={["DG ID", "DG Id", "DGID"]}
+        />
       </div>
     </div>
   );

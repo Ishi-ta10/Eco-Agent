@@ -3,9 +3,9 @@ Scheduler endpoints router
 """
 from fastapi import APIRouter, UploadFile, File, Query, Body
 from typing import Optional
-from services import scheduler_service
-from schemas.scheduler import SchedulerConfig, SchedulerStatus, SendNowRequest
-from schemas.common import SuccessResponse
+from ..services import scheduler_service
+from ..schemas.scheduler import SchedulerConfig, SchedulerStatus, SendNowRequest
+from ..schemas.common import SuccessResponse
 
 router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 

@@ -71,7 +71,8 @@ def build_unified_dataframe(grid: pd.DataFrame, solar: pd.DataFrame, diesel: pd.
             merged[col] = merged[col].fillna(0)
 
     # ── Derived columns ──
-    merged["Total KWh"] = merged["Grid KWh"] + merged["Solar KWh"] + merged["Diesel KWh"]
+    # Total consumption for dashboard/email KPIs should reflect grid + solar only.
+    merged["Total KWh"] = merged["Grid KWh"] + merged["Solar KWh"]
     grid_rate = 7.11
     solar_rate = 1.50
     merged["Solar Cost (INR)"] = merged["Solar KWh"] * solar_rate

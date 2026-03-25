@@ -3,8 +3,8 @@ Data endpoints router
 """
 from fastapi import APIRouter, Query
 from typing import Optional
-from services import data_service
-from schemas.energy import EnergyDataResponse
+from ..services import data_service
+from ..schemas.energy import EnergyDataResponse
 
 router = APIRouter(prefix="/api/data", tags=["data"])
 

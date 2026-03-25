@@ -44,6 +44,16 @@ def _history_file(dataset_name: str) -> str:
     return os.path.join(_history_dir(), f"{dataset_name}_history.csv")
 
 
+def _history_keep_days() -> int:
+    """Retention window for local rolling history used by dashboard date filters."""
+    raw_value = os.getenv("HISTORY_KEEP_DAYS", "365").strip()
+    try:
+        parsed = int(raw_value)
+    except Exception:
+        parsed = 365
+    return max(parsed, 7)
+
+
 def _merge_and_keep_last_n_days(dataset_name: str, new_df: pd.DataFrame, keep_days: int = 7) -> pd.DataFrame:
     """Persist incoming rows and return a deduped rolling window of the latest N dates."""
     if new_df is None or len(new_df) == 0:
@@ -346,7 +356,7 @@ def load_grid_data(config: dict) -> pd.DataFrame:
             df[col] = pd.to_numeric(df[col], errors="coerce")
     # Keep "Ambient Temperature °C" as string (range format e.g. "9-29")
     df = _normalize_day_and_time_columns(df)
-    return _merge_and_keep_last_n_days("grid", df, keep_days=7)
+    return _merge_and_keep_last_n_days("grid", df, keep_days=_history_keep_days())
 
 
 def load_solar_data(config: dict) -> pd.DataFrame:
@@ -446,7 +456,7 @@ def load_solar_data(config: dict) -> pd.DataFrame:
                 df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
 
             df = _normalize_day_and_time_columns(df)
-            return _merge_and_keep_last_n_days("solar", df, keep_days=7)
+            return _merge_and_keep_last_n_days("solar", df, keep_days=_history_keep_days())
         except Exception as err:
             print(f"[WARN] Solar source failed ({err}). Falling back to local solar file.")
 
@@ -463,7 +473,7 @@ def load_solar_data(config: dict) -> pd.DataFrame:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
     df = _normalize_day_and_time_columns(df)
-    return _merge_and_keep_last_n_days("solar", df, keep_days=7)
+    return _merge_and_keep_last_n_days("solar", df, keep_days=_history_keep_days())
 
 
 def load_solar_last7_data(config: dict) -> pd.DataFrame:
@@ -558,7 +568,7 @@ def load_diesel_data(config: dict) -> pd.DataFrame:
                 df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
 
             df = _normalize_day_and_time_columns(df)
-            return _merge_and_keep_last_n_days("diesel", df, keep_days=7)
+            return _merge_and_keep_last_n_days("diesel", df, keep_days=_history_keep_days())
     except Exception as err:
         print(f"[WARN] Diesel source from grid_file failed ({err}). Falling back to {fallback}")
 
@@ -576,7 +586,7 @@ def load_diesel_data(config: dict) -> pd.DataFrame:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
         df = _normalize_day_and_time_columns(df)
-        return _merge_and_keep_last_n_days("diesel", df, keep_days=7)
+        return _merge_and_keep_last_n_days("diesel", df, keep_days=_history_keep_days())
 
     # Last-resort fallback: return zero-diesel rows aligned to grid keys.
     print(f"[WARN] Diesel fallback file not found at {path}. Using zero diesel values.")
@@ -601,7 +611,7 @@ def load_diesel_data(config: dict) -> pd.DataFrame:
         df["Date"] = pd.to_datetime(df["Date"]).dt.date
 
     df = _normalize_day_and_time_columns(df)
-    return _merge_and_keep_last_n_days("diesel", df, keep_days=7)
+    return _merge_and_keep_last_n_days("diesel", df, keep_days=_history_keep_days())
 
 
 def load_all(config: dict = None):

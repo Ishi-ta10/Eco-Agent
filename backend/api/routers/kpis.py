@@ -3,7 +3,7 @@ KPI endpoints router
 """
 from fastapi import APIRouter, Query
 from typing import Optional
-from services import data_service
+from ..services import data_service
 import numpy as np
 import json
 
@@ -72,9 +72,9 @@ async def get_solar_kpis(
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)")
 ):
     """Get solar-specific KPIs with inverter status."""
-    # Metrics are intentionally based on static configured last-7-days source.
-    last7_data = data_service.load_solar_last7_data()
-    data = last7_data["data"]
+    # Respect selected dashboard date filter, similar to Grid/Diesel tabs.
+    solar_data = data_service.load_solar_data(start_date, end_date)
+    data = solar_data["data"]
 
     if not data:
         return {
@@ -94,8 +94,8 @@ async def get_solar_kpis(
     df = pd.DataFrame(data)
     generation_col = "Generation (kWh)" if "Generation (kWh)" in df.columns else "Solar Units Generated (KWh)"
 
-    # Fault count derived from live solar status dataset.
-    solar_status_data = data_service.load_solar_data(None, None).get("data", [])
+    # Fault count derived from same selected date range.
+    solar_status_data = data_service.load_solar_data(start_date, end_date).get("data", [])
     inverter_faults = 0
     if solar_status_data:
         sdf = pd.DataFrame(solar_status_data)

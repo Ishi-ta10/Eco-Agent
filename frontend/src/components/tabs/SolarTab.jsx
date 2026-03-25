@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { useDateStore } from "../../store/dateStore";
-import { useSolarKPIs, useSolarData } from "../../hooks/useEnergyData";
+import { useSolarData } from "../../hooks/useEnergyData";
 import { KPICard } from "../common/KPICard";
 import { DataTable } from "../common/DataTable";
 import { ExportButton } from "../common/ExportButton";
@@ -8,6 +7,16 @@ import { StackedBarChart } from "../charts/StackedBarChart";
 import { AreaChartComponent } from "../charts/AreaChart";
 import { LoadingSpinner } from "../common/LoadingSpinner";
 import { exportAPI } from "../../api/endpoints";
+import {
+  asNumber,
+  countInverterFaults,
+  EFFECTIVE_TODAY,
+  EFFECTIVE_TODAY_DISPLAY,
+  getLatestRow,
+  getRecentDateRange,
+  getRecentRows,
+  getRowsForDate,
+} from "../../utils/recentData";
 import {
   Sun,
   DollarSign,
@@ -23,20 +32,20 @@ const InverterStatus = ({ name, status }) => {
     <div
       className={`p-4 rounded-xl border transition-all ${
         isOnline
-          ? "bg-[#ebf7f2] border-[#b8ddcd] hover:border-[#95c8b3]"
-          : "bg-[#fcf0ef] border-[#e4c2bf] hover:border-[#cf9f99]"
+          ? "bg-[#edf5f2] border-[#c0d8d0] hover:border-[#99bcae]"
+          : "bg-[#f8eff1] border-[#debec4] hover:border-[#c99fa8]"
       }`}
     >
       <div className="flex items-center gap-3">
         <div
-          className={`w-2 h-6 rounded-full ${isOnline ? "bg-gradient-to-b from-green-400 to-green-600" : "bg-gradient-to-b from-red-400 to-red-600"}`}
+          className={`w-2 h-6 rounded-full ${isOnline ? "bg-gradient-to-b from-[#6fa791] to-[#437c65]" : "bg-gradient-to-b from-[#c17a86] to-[#9f5060]"}`}
         ></div>
         <div>
           <p className="font-semibold text-sm text-[var(--text-primary)]">
             {name}
           </p>
           <p
-            className={`text-xs font-medium mt-1 ${isOnline ? "text-[#1b7f5b]" : "text-[#b54747]"}`}
+            className={`text-xs font-medium mt-1 ${isOnline ? "text-[#346f5a]" : "text-[#924857]"}`}
           >
             {isOnline ? "✓ Online" : "✗ Fault"}
           </p>
@@ -47,14 +56,8 @@ const InverterStatus = ({ name, status }) => {
 };
 
 export const SolarTab = () => {
-  const { startDate, endDate } = useDateStore();
   const [isExporting, setIsExporting] = useState(false);
-
-  const {
-    data: kpiData,
-    isLoading: kpiLoading,
-    error: kpiError,
-  } = useSolarKPIs(startDate, endDate);
+  const { startDate, endDate } = getRecentDateRange(7);
   const {
     data: solarData,
     isLoading: dataLoading,
@@ -83,11 +86,11 @@ export const SolarTab = () => {
     }
   };
 
-  if (kpiLoading || dataLoading) {
+  if (dataLoading) {
     return <LoadingSpinner message="Loading solar data..." />;
   }
 
-  if (kpiError || dataError) {
+  if (dataError) {
     return (
       <div className="text-center py-12">
         <AlertCircle
@@ -99,9 +102,36 @@ export const SolarTab = () => {
     );
   }
 
+  const recentSolarRows = getRecentRows(solarData?.data || [], 7);
+  const todaySolarRows = getRowsForDate(recentSolarRows, EFFECTIVE_TODAY);
+  const latestSolarRow = getLatestRow(todaySolarRows);
+  const latestSolarEnergyGenerated = asNumber(latestSolarRow, [
+    "Solar Units Generated (KWh)",
+    "Solar KWh",
+  ]);
+  const smbValues = [
+    "SMB1 (KWh)",
+    "SMB2 (KWh)",
+    "SMB3 (KWh)",
+    "SMB4 (KWh)",
+    "SMB5 (KWh)",
+  ]
+    .map((key) => asNumber(latestSolarRow, [key]))
+    .filter((value) => value > 0);
+  const latestAverageSmbOutput = smbValues.length
+    ? smbValues.reduce((sum, value) => sum + value, 0) / smbValues.length
+    : 0;
+  const latestPeakSmbOutput = smbValues.length ? Math.max(...smbValues) : 0;
+  // Calculate energy savings: Solar kWh * (grid_rate - solar_rate) = Solar kWh * 5.61
+  const SAVINGS_RATE = 5.61; // Grid rate (7.11) - Solar rate (1.50)
+  const latestEstimatedSavings = latestSolarEnergyGenerated * SAVINGS_RATE;
+  const latestInverterFaultCount = countInverterFaults(
+    latestSolarRow?.["Inverter Status"],
+  );
+
   const smbs = ["SMB1", "SMB2", "SMB3", "SMB4", "SMB5"];
   const inverterStatuses = (() => {
-    const records = solarData?.data || [];
+    const records = recentSolarRows;
     const defaultStatuses = smbs.reduce((acc, smb) => {
       acc[smb] = { name: smb, status: "All Online" };
       return acc;
@@ -153,64 +183,67 @@ export const SolarTab = () => {
   })();
 
   const smbChartData =
-    solarData?.data?.map((item) => ({
+    recentSolarRows?.map((item) => ({
       Date: item.Date,
-      "Solar Generated": parseFloat(item["Solar Units Generated (KWh)"]) || 0,
-      SMB1: parseFloat(item["SMB1 (KWh)"]) || 0,
-      SMB2: parseFloat(item["SMB2 (KWh)"]) || 0,
-      SMB3: parseFloat(item["SMB3 (KWh)"]) || 0,
-      SMB4: parseFloat(item["SMB4 (KWh)"]) || 0,
-      SMB5: parseFloat(item["SMB5 (KWh)"]) || 0,
+      "Solar Energy Generated (kWh)":
+        parseFloat(item["Solar Units Generated (KWh)"]) || 0,
+      "SMB1 Energy Generated (kWh)": parseFloat(item["SMB1 (KWh)"]) || 0,
+      "SMB2 Energy Generated (kWh)": parseFloat(item["SMB2 (KWh)"]) || 0,
+      "SMB3 Energy Generated (kWh)": parseFloat(item["SMB3 (KWh)"]) || 0,
+      "SMB4 Energy Generated (kWh)": parseFloat(item["SMB4 (KWh)"]) || 0,
+      "SMB5 Energy Generated (kWh)": parseFloat(item["SMB5 (KWh)"]) || 0,
     })) || [];
 
   const weeklyTrendData =
-    kpiData?.weekly_trend?.map((item) => ({
-      Date: item?.Day
-        ? `${item.Day.slice(0, 3)} (${item.Date.slice(5)})`
-        : item.Date,
-      "Solar Generated": parseFloat(item?.Generation) || 0,
+    recentSolarRows?.map((item) => ({
+      Date: item?.Date,
+      "Solar Energy Generated (kWh)":
+        parseFloat(item?.["Solar Units Generated (KWh)"]) || 0,
     })) || [];
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold section-title mb-4">
-          Solar Panel Metrics
+          Key Metrics of Today
         </h2>
+        <p className="text-sm text-[var(--text-muted)] mb-4">
+          Date: {EFFECTIVE_TODAY_DISPLAY}
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <KPICard
-            title="Total Solar"
-            value={kpiData?.total_solar_kwh || 0}
+            title="Solar Energy Generated"
+            value={latestSolarEnergyGenerated}
             unit="kWh"
             color="yellow"
             icon={Sun}
           />
           <KPICard
-            title="Average Daily"
-            value={kpiData?.avg_solar_kwh || 0}
+            title="Average SMB Output"
+            value={latestAverageSmbOutput}
             unit="kWh"
             color="yellow"
           />
           <KPICard
-            title="Peak Generation"
-            value={kpiData?.peak_solar_kwh || 0}
+            title="Peak SMB Output"
+            value={latestPeakSmbOutput}
             unit="kWh"
             color="yellow"
             icon={TrendingUp}
           />
           <KPICard
-            title="Energy Saved"
-            value={kpiData?.energy_saved || 0}
+            title="Estimated Energy Cost Savings"
+            value={latestEstimatedSavings}
             unit="INR"
             color="green"
             icon={DollarSign}
           />
           <KPICard
-            title="Inverter Faults"
-            value={kpiData?.inverter_faults || 0}
+            title="Inverter Fault Count"
+            value={latestInverterFaultCount}
             unit="Count"
-            color={kpiData?.inverter_faults > 0 ? "red" : "green"}
-            icon={kpiData?.inverter_faults > 0 ? AlertCircle : CheckCircle2}
+            color={latestInverterFaultCount > 0 ? "red" : "green"}
+            icon={latestInverterFaultCount > 0 ? AlertCircle : CheckCircle2}
           />
         </div>
       </div>
@@ -231,25 +264,19 @@ export const SolarTab = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="w-full">
         <AreaChartComponent
           data={weeklyTrendData}
-          title="Solar Generation Trend (Last 7 Days)"
-          dataKeys={["Solar Generated"]}
-          colors={["#d39b22"]}
-        />
-        <StackedBarChart
-          data={smbChartData}
-          title="SMB Contribution"
-          dataKeys={["SMB1", "SMB2", "SMB3", "SMB4", "SMB5"]}
-          colors={["#1f5ea8", "#c57c22", "#1b7f5b", "#b54747", "#5a6b7f"]}
+          title="Solar Energy Generation Trend (Last 7 Days)"
+          dataKeys={["Solar Energy Generated (kWh)"]}
+          colors={["#8f7a58"]}
         />
       </div>
 
       <div>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold section-title">
-            Detailed Solar Data
+            Detailed Solar Data (Last 7 Days)
           </h2>
           <ExportButton
             onClick={handleExport}
@@ -258,8 +285,14 @@ export const SolarTab = () => {
           />
         </div>
         <DataTable
-          data={solarData?.data || []}
-          hideColumns={["Irradiance (W/m²)"]}
+          data={recentSolarRows}
+          columns={[
+            "Date",
+            "Day",
+            "Time",
+            "Solar Units Generated (KWh)",
+            "Inverter Status",
+          ]}
         />
       </div>
     </div>

@@ -1,11 +1,12 @@
 import { create } from "zustand";
 import { format, subDays } from "date-fns";
+import { EFFECTIVE_TODAY } from "../utils/recentData";
 
-// Initialize with last 30 days
-const today = new Date();
-const thirtyDaysAgo = subDays(today, 30);
+// Initialize with last 7 days
+const today = new Date(`${EFFECTIVE_TODAY}T00:00:00`);
+const sevenDaysAgo = subDays(today, 6);
 
-const defaultStartDate = format(thirtyDaysAgo, "yyyy-MM-dd");
+const defaultStartDate = format(sevenDaysAgo, "yyyy-MM-dd");
 const defaultEndDate = format(today, "yyyy-MM-dd");
 
 export const useDateStore = create((set) => ({
